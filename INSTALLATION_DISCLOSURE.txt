@@ -1,0 +1,58 @@
+ARCHive Seven-Day Beta - Trial, Privacy, and Local Records
+
+Please read this before installing.
+
+SEVEN-DAY BETA
+
+This is a non-production beta build. Its seven-day trial begins the first time
+ARCHive is launched, not when the installer is opened. ARCHive checks the trial
+only at startup, so an operation already in progress is never interrupted by
+expiry.
+
+The beta stores an encrypted local trial record for the current Windows user
+under:
+
+%LOCALAPPDATA%\ARCHive\Beta\trial.dat
+
+The record contains the first-launch time, most recent launch time, expiry
+state, and any trial lock reason. It is not uploaded. Normal uninstalling or
+reinstalling does not remove this record. Moving the Windows clock backwards
+by more than the allowed correction tolerance may lock the beta. A damaged or
+unreadable trial record fails closed instead of silently resetting the trial.
+
+LOCAL OPERATION RECORDS
+
+This beta writes a local diagnostic record after each Copy, Create Archive,
+and Extract Archive operation. The record can include:
+
+- selected source and destination paths;
+- output paths and file names shown by the copy or archive engine;
+- operation type, result, duration, byte and file counts;
+- average transfer or processing speed;
+- warnings, errors, engine exit codes, and limited engine output;
+- Windows, processor architecture, .NET, and ARCHive version information.
+
+The records are stored only on this computer under:
+
+%LOCALAPPDATA%\ARCHive\Logs
+
+ARCHive does not automatically upload these records and contains no telemetry
+or cloud reporting. JSON log files older than 30 days are removed when ARCHive
+writes a new operation record. Uninstalling ARCHive does not automatically
+remove existing records.
+
+TEST SAFELY
+
+Use disposable test data or retain another verified copy. This beta must not
+be the only copy of important files. Database backup, disk imaging, cloning,
+cloud backup, scheduling, and password-protected archives are outside this
+beta's scope.
+
+FEEDBACK
+
+Complete the questionnaire included with the beta package and email it to:
+
+GunborgServers@gmail.com
+
+Continuing installation means you acknowledge this seven-day beta behavior
+and the local records described above.

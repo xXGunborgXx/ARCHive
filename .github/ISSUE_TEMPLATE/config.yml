@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security or data-integrity report
+    url: https://github.com/xXGunborgXx/ARCHive/security/policy
+    about: Read the private reporting instructions instead of opening a public issue.

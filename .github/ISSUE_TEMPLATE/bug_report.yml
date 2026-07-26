@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible ARCHive problem
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. Remove personal paths and other private information before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: ARCHive version
+      placeholder: 1.0.0-beta1
+    validations:
+      required: true
+  - type: dropdown
+    id: action
+    attributes:
+      label: Action
+      options:
+        - Installer or first launch
+        - Copy
+        - Create Archive
+        - Extract Archive
+        - Pause, resume, or cancel
+        - Diagnostics
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Use sanitized paths and disposable test data.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Windows version, VM or physical PC, storage types, and display scaling.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I reviewed all attachments and removed private information.
+          required: true

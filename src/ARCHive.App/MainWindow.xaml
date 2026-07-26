@@ -1,0 +1,713 @@
+<Window x:Class="ARCHive.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="ARCHive"
+        Icon="Assets/ARCHive-icon.ico"
+        Width="680"
+        Height="500"
+        MinWidth="680"
+        MinHeight="500"
+        MaxWidth="680"
+        MaxHeight="500"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="OnWindowPreviewKeyDown"
+        Closing="OnWindowClosing"
+        Background="#0B0E13"
+        FontFamily="Segoe UI"
+        Foreground="#F3F0EA"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <Window.Resources>
+        <SolidColorBrush x:Key="WindowBrush" Color="#0B0E13"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#151A22"/>
+        <SolidColorBrush x:Key="PanelRaisedBrush" Color="#1B212B"/>
+        <SolidColorBrush x:Key="InputBrush" Color="#0F131A"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#F3F0EA"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#A7ADB7"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#343B47"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#F2A24B"/>
+        <SolidColorBrush x:Key="AccentDarkBrush" Color="#3A2718"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#E07A68"/>
+        <!-- Kept for code-behind compatibility with the established action-state helper. -->
+        <SolidColorBrush x:Key="NavyBrush" Color="#F3F0EA"/>
+        <SolidColorBrush x:Key="BlueBrush" Color="#F2A24B"/>
+
+        <LinearGradientBrush x:Key="HeaderBrush"
+                             StartPoint="0,0"
+                             EndPoint="1,0">
+            <GradientStop Color="#1B2028" Offset="0"/>
+            <GradientStop Color="#12161D" Offset="0.68"/>
+            <GradientStop Color="#21170F" Offset="1"/>
+        </LinearGradientBrush>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="{StaticResource PanelRaisedBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="13,7"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="BorderBrush"
+                                        Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#252B35"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="{StaticResource AccentDarkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="BorderBrush"
+                                        Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="ButtonBorder"
+                                        Property="BorderThickness"
+                                        Value="2"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Opacity"
+                                        Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActionButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="FontSize" Value="12.5"/>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="#17110B"/>
+            <Setter Property="BorderBrush" Value="#FFC277"/>
+            <Setter Property="MinWidth" Value="126"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="QuietButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="SelectionBrush" Value="#8A562D"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentDarkBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#16191F"/>
+            <Setter Property="Background" Value="#E8E5DE"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Padding" Value="7,4"/>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#16191F"/>
+            <Setter Property="Background" Value="#F0EDE6"/>
+            <Setter Property="Padding" Value="8,5"/>
+        </Style>
+
+        <Style TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="ProgressBar">
+            <Setter Property="Height" Value="10"/>
+            <Setter Property="Background" Value="#090B0F"/>
+            <Setter Property="BorderBrush" Value="#3A424F"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid x:Name="ProgressRoot"
+                              ClipToBounds="True"
+                              SnapsToDevicePixels="True">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4"/>
+                            <Border x:Name="PART_Track"
+                                    Margin="1"
+                                    CornerRadius="3"/>
+                            <Border x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Margin="1"
+                                    CornerRadius="3">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0"
+                                                         EndPoint="1,0">
+                                        <GradientStop Color="#B95B1C" Offset="0"/>
+                                        <GradientStop Color="#F29A38" Offset="0.55"/>
+                                        <GradientStop Color="#FFD36A" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                            <Grid x:Name="IndeterminateRoot"
+                                  Visibility="Collapsed"
+                                  Margin="1"
+                                  ClipToBounds="True">
+                                <Border x:Name="IndeterminatePulse"
+                                        Width="120"
+                                        HorizontalAlignment="Left"
+                                        CornerRadius="3">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0"
+                                                             EndPoint="1,0">
+                                            <GradientStop Color="Transparent" Offset="0"/>
+                                            <GradientStop Color="#B95B1C" Offset="0.2"/>
+                                            <GradientStop Color="#FFD36A" Offset="0.55"/>
+                                            <GradientStop Color="Transparent" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="-130"/>
+                                    </Border.RenderTransform>
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     From="-130"
+                                                                     To="820"
+                                                                     Duration="0:0:1.35"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsIndeterminate" Value="True">
+                                <Setter TargetName="PART_Indicator"
+                                        Property="Visibility"
+                                        Value="Collapsed"/>
+                                <Setter TargetName="IndeterminateRoot"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ProgressRoot"
+                                        Property="Opacity"
+                                        Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PanelStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="15"/>
+        </Style>
+
+        <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="HelpTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="42"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource WindowBrush}"
+            BorderBrush="#5A3B20"
+            BorderThickness="1">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="34"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="{StaticResource HeaderBrush}"
+                BorderBrush="#343B47"
+                BorderThickness="0,0,0,1"
+                MouseLeftButtonDown="OnTitleBarMouseLeftButtonDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Image Width="17"
+                       Height="17"
+                       Margin="10,0,7,0"
+                       Source="Assets/ARCHive-icon.ico"
+                       Stretch="Uniform"/>
+                <TextBlock Grid.Column="1"
+                           Text="ARCHive"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource TextBrush}"
+                           FontSize="11.5"
+                           FontWeight="SemiBold"/>
+                <Button Grid.Column="2"
+                        Style="{StaticResource TitleBarButtonStyle}"
+                        Content="&#xE921;"
+                        Click="OnMinimizeWindow"
+                        AutomationProperties.Name="Minimize"/>
+                <Button Grid.Column="3"
+                        Content="&#xE8BB;"
+                        Foreground="{StaticResource TextBrush}"
+                        Click="OnCloseWindow"
+                        AutomationProperties.Name="Close">
+                    <Button.Style>
+                        <Style TargetType="Button"
+                               BasedOn="{StaticResource TitleBarButtonStyle}">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#A93E36"/>
+                                    <Setter Property="BorderBrush" Value="#A93E36"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                Background="{StaticResource HeaderBrush}"
+                BorderBrush="#5A3B20"
+                BorderThickness="0,0,0,1"
+                Padding="14,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Width="36"
+                        Height="36"
+                        Background="#11151B"
+                        BorderBrush="#6B4A2A"
+                        BorderThickness="1"
+                        CornerRadius="7">
+                    <Image Source="Assets/ARCHive-icon.ico"
+                           Width="29"
+                           Height="29"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                </Border>
+                <StackPanel Grid.Column="1"
+                            Margin="9,0,0,0"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="ARCHive"
+                               Foreground="{StaticResource TextBrush}"
+                               FontWeight="SemiBold"
+                               FontSize="20"/>
+                    <TextBlock Text="Simple, safe file copying and archiving"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="11"
+                               Margin="0,1,0,0"/>
+                </StackPanel>
+                <Border Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Background="#241A12"
+                        BorderBrush="#6B4A2A"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="10,4">
+                    <TextBlock Text="7-DAY BETA • LOCAL"
+                               Foreground="#E7B77F"
+                               FontSize="10"
+                               FontWeight="SemiBold"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <StackPanel Margin="14,10,14,12">
+                <Grid x:Name="ActionPanel"
+                      Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="CopyActionButton"
+                            Grid.Column="0"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Background="{StaticResource AccentDarkBrush}"
+                            BorderBrush="{StaticResource AccentBrush}"
+                            Foreground="{StaticResource AccentBrush}"
+                            Content="COPY"
+                            Click="OnSelectCopy"
+                            AutomationProperties.Name="Copy files or folders"/>
+                    <Button x:Name="CreateArchiveActionButton"
+                            Grid.Column="2"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Content="CREATE ARCHIVE"
+                            Click="OnSelectCreateArchive"
+                            AutomationProperties.Name="Create a 7z or ZIP archive"/>
+                    <Button x:Name="ExtractArchiveActionButton"
+                            Grid.Column="4"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Content="EXTRACT ARCHIVE"
+                            Click="OnSelectExtractArchive"
+                            AutomationProperties.Name="Extract a 7z or ZIP archive"/>
+                </Grid>
+
+                <Border x:Name="InputsPanel"
+                        Style="{StaticResource PanelStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SOURCE"
+                                   Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock x:Name="SourceHelpText"
+                                   Text="Add files and folders separately; every choice stays in the same list."
+                                   Style="{StaticResource HelpTextStyle}"
+                                   Margin="0,2,0,6"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="SourceTextBox"
+                                     Grid.Column="0"
+                                     AllowDrop="True"
+                                     TextChanged="OnPathTextChanged"
+                                     PreviewDragOver="OnSourceDragOver"
+                                     Drop="OnSourceDrop"
+                                     AutomationProperties.Name="Source file or folder path"/>
+                            <Button x:Name="ChooseFileButton"
+                                    Grid.Column="1"
+                                    Content="Add File(s)"
+                                    Margin="7,0,0,0"
+                                    Click="OnChooseFile"
+                                    AutomationProperties.Name="Add one or more source files"/>
+                            <Button x:Name="ChooseSourceFolderButton"
+                                    Grid.Column="2"
+                                    Content="Add Folder(s)"
+                                    Margin="6,0,0,0"
+                                    Click="OnChooseSourceFolder"
+                                    AutomationProperties.Name="Add one or more source folders"/>
+                            <Button x:Name="ClearSourcesButton"
+                                    Grid.Column="3"
+                                    Style="{StaticResource QuietButtonStyle}"
+                                    Content="Clear"
+                                    Visibility="Collapsed"
+                                    Margin="6,0,0,0"
+                                    Click="OnClearSources"
+                                    AutomationProperties.Name="Clear selected source items"/>
+                        </Grid>
+
+                        <Border x:Name="ArchiveOptionsPanel"
+                                Visibility="Collapsed"
+                                Background="{StaticResource InputBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="8"
+                                Margin="0,8,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="ARCHIVE TYPE"
+                                               Foreground="{StaticResource MutedBrush}"
+                                               FontWeight="SemiBold"
+                                               FontSize="10.5"/>
+                                    <StackPanel Orientation="Horizontal"
+                                                Margin="0,6,0,0">
+                                        <RadioButton x:Name="SevenZipRadioButton"
+                                                     Content="7z · Smaller"
+                                                     IsChecked="True"
+                                                     Margin="0,0,16,0"
+                                                     Checked="OnArchiveOptionChanged"
+                                                     AutomationProperties.Name="7z smaller archive"/>
+                                        <RadioButton x:Name="ZipRadioButton"
+                                                     Content="ZIP · Compatible"
+                                                     Checked="OnArchiveOptionChanged"
+                                                     AutomationProperties.Name="ZIP compatible archive"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="COMPRESSION"
+                                               Foreground="{StaticResource MutedBrush}"
+                                               FontWeight="SemiBold"
+                                               FontSize="10.5"/>
+                                    <ComboBox x:Name="CompressionComboBox"
+                                              SelectedIndex="1"
+                                              Margin="0,4,0,0"
+                                              SelectionChanged="OnArchiveOptionChanged"
+                                              AutomationProperties.Name="Compression level">
+                                        <ComboBoxItem Content="Fast"/>
+                                        <ComboBoxItem Content="Balanced"/>
+                                        <ComboBoxItem Content="Smallest"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="DESTINATION"
+                                   Style="{StaticResource SectionLabelStyle}"
+                                   Margin="0,10,0,0"/>
+                        <TextBlock x:Name="DestinationHelpText"
+                                   Text="Choose the folder where the dated copy will be created."
+                                   Style="{StaticResource HelpTextStyle}"
+                                   Margin="0,2,0,6"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="DestinationTextBox"
+                                     Grid.Column="0"
+                                     AllowDrop="True"
+                                     TextChanged="OnPathTextChanged"
+                                     PreviewDragOver="OnDestinationDragOver"
+                                     Drop="OnDestinationDrop"
+                                     AutomationProperties.Name="Destination folder path"/>
+                            <Button Grid.Column="1"
+                                    Content="Choose Destination"
+                                    Margin="7,0,0,0"
+                                    Click="OnChooseDestination"
+                                    AutomationProperties.Name="Choose destination folder"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="PreflightPanel"
+                        Background="{StaticResource PanelRaisedBrush}"
+                        BorderBrush="#6B4A2A"
+                        BorderThickness="1"
+                        CornerRadius="7"
+                        Padding="10"
+                        Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="PreflightTitle"
+                                       Text="Choose a source and destination"
+                                       Foreground="{StaticResource TextBrush}"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock x:Name="PreflightDetails"
+                                       Text="ARCHive will check the paths automatically."
+                                       Style="{StaticResource HelpTextStyle}"
+                                       Margin="0,3,16,0"
+                                       AutomationProperties.LiveSetting="Polite"/>
+                        </StackPanel>
+                        <Button x:Name="StartButton"
+                                Grid.Column="1"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Content="Start Copy"
+                                IsDefault="True"
+                                IsEnabled="False"
+                                Click="OnStart"
+                                AutomationProperties.Name="Start copy"/>
+                    </Grid>
+                </Border>
+
+                <Border x:Name="ProgressPanel"
+                        Visibility="Collapsed"
+                        Style="{StaticResource PanelStyle}"
+                        BorderBrush="#6B4A2A"
+                        Padding="10"
+                        Margin="0,8,0,0">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ProgressTitle"
+                                       Text="Preparing"
+                                       Foreground="{StaticResource TextBrush}"
+                                       FontSize="13.5"
+                                       FontWeight="SemiBold"
+                                       AutomationProperties.LiveSetting="Polite"/>
+                            <TextBlock x:Name="ProgressPercent"
+                                       Grid.Column="1"
+                                       Text=""
+                                       Foreground="{StaticResource AccentBrush}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"/>
+                        </Grid>
+                        <ProgressBar x:Name="JobProgressBar"
+                                     Margin="0,6,0,5"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     AutomationProperties.Name="Job progress"/>
+                        <TextBlock x:Name="ProgressDetails"
+                                   Style="{StaticResource HelpTextStyle}"/>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid x:Name="TransferRatePanel"
+                                  Visibility="Collapsed"
+                                  VerticalAlignment="Center">
+                                <TextBlock x:Name="TransferSpeedText"
+                                           Foreground="#E7B77F"
+                                           FontSize="11.5"
+                                           FontWeight="SemiBold"
+                                           AutomationProperties.LiveSetting="Polite"/>
+                            </Grid>
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal">
+                                <Button x:Name="PauseButton"
+                                        Content="Pause"
+                                        Visibility="Collapsed"
+                                        Margin="0,0,6,0"
+                                        Click="OnPause"
+                                        AutomationProperties.Name="Pause folder copy between files"/>
+                                <Button x:Name="CancelButton"
+                                        Content="Cancel"
+                                        BorderBrush="#69443E"
+                                        Click="OnCancel"
+                                        AutomationProperties.Name="Cancel current job and remove its output"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="ResultPanel"
+                        Visibility="Collapsed"
+                        Style="{StaticResource PanelStyle}"
+                        BorderBrush="#6B4A2A"
+                        Padding="10"
+                        Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="ResultTitle"
+                                       Foreground="{StaticResource TextBrush}"
+                                       FontSize="14.5"
+                                       FontWeight="SemiBold"
+                                       AutomationProperties.LiveSetting="Assertive"/>
+                            <TextBlock x:Name="ResultDetails"
+                                       Style="{StaticResource HelpTextStyle}"
+                                       Margin="0,3,16,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center">
+                            <Button x:Name="OpenDestinationButton"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Content="Open Destination"
+                                    Click="OnOpenDestination"
+                                    AutomationProperties.Name="Open completed output folder"/>
+                            <Button x:Name="OpenDiagnosticLogButton"
+                                    Style="{StaticResource QuietButtonStyle}"
+                                    Content="Diagnostic Log"
+                                    Margin="0,5,0,0"
+                                    Click="OnOpenDiagnosticLog"
+                                    AutomationProperties.Name="Open local diagnostic log"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+    </Border>
+</Window>

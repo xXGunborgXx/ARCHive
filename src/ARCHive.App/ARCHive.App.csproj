@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ARCHive.Core\ARCHive.Core.csproj" />
+    <ProjectReference Include="..\ARCHive.Copy\ARCHive.Copy.csproj" />
+    <ProjectReference Include="..\ARCHive.Archive\ARCHive.Archive.csproj" />
+    <ProjectReference Include="..\ARCHive.Infrastructure\ARCHive.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="..\..\images\ARCHive-icon.ico">
+      <Link>Assets\ARCHive-icon.ico</Link>
+    </Resource>
+    <Content Include="..\..\third_party\7zip\26.02\runtime\**\*">
+      <Link>tools\7zip\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\THIRD_PARTY_NOTICES.txt">
+      <Link>THIRD_PARTY_NOTICES.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>ARCHive</AssemblyName>
+    <Version>1.0.0-beta.1</Version>
+    <ApplicationIcon>..\..\images\ARCHive-icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+</Project>

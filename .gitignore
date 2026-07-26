@@ -1,0 +1,42 @@
+# Visual Studio and .NET
+.vs/
+bin/
+obj/
+TestResults/
+*.user
+*.suo
+
+# Build and packaging output
+artifacts/
+installer/output/
+*.nupkg
+*.snupkg
+
+# Local test evidence and design references
+Test-Video/
+Audits/
+images/Background*.png
+images/Buttons.png
+images/Loading bar/
+
+# Local application/test data
+.qa/
+logs/
+*.partial
+*.archive-partial
+third_party/7zip/*/7z*-extra.7z
+third_party/7zip/*/extracted/
+
+# Signing material and secrets
+*.pfx
+*.p12
+*.key
+*.cer
+*.secrets.json
+
+# OS/editor files
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+.vscode/

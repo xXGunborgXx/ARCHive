@@ -1,0 +1,20 @@
+ARCHive Third-Party Notices
+===========================
+
+7-Zip 26.02
+------------
+
+ARCHive includes components from 7-Zip by Igor Pavlov.
+
+7-Zip is licensed under the GNU Lesser General Public License (LGPL), with
+additional licensing information included in:
+
+  tools\7zip\License.txt
+  tools\7zip\readme.txt
+
+Official project and source:
+
+  https://www.7-zip.org/
+
+The bundled version must be shown in ARCHive's About information and release
+documentation.

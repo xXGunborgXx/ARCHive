@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a focused improvement within ARCHive's scope
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What ordinary-user problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest clear workflow that would solve it.
+    validations:
+      required: true
+  - type: textarea
+    id: integrity
+    attributes:
+      label: Integrity and privacy considerations
+      description: Could this affect partial files, cleanup, logs, or private paths?
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This request is not for database backup, disk imaging, cloning, cloud backup, or scheduling.
+          required: true

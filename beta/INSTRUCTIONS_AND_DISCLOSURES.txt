@@ -1,0 +1,85 @@
+ARCHive Seven-Day Beta
+Instructions and Disclosures
+
+PURPOSE
+
+This is a non-production Windows 11 x64 beta for copying files and folders,
+creating 7z or ZIP archives, and extracting supported archives.
+
+INSTALLATION
+
+1. Keep another verified copy of every important test file.
+2. Run ARCHive-Beta-1.0.0-beta1-7day-Setup.exe as a normal Windows user.
+3. Read the disclosure shown by the installer.
+4. Complete installation and launch ARCHive.
+5. Note the expiry date shown on first launch.
+
+The installer is not code-signed. Windows may show Unknown Publisher or a
+SmartScreen warning. Do not bypass company or organization security policy.
+
+SEVEN-DAY TRIAL
+
+The trial starts on first launch and lasts seven consecutive days.
+The trial is checked only when ARCHive starts. A copy, archive, or extraction
+already in progress will never be interrupted by expiry.
+
+ARCHive stores an encrypted current-user trial record at:
+
+%LOCALAPPDATA%\ARCHive\Beta\trial.dat
+
+It contains first-launch time, most recent launch time, expiry state, and any
+lock reason. It is not uploaded. Normal uninstalling or reinstalling does not
+remove it. Moving the Windows clock backwards by more than the allowed
+correction tolerance may lock the beta. A damaged record fails closed.
+
+SAFE TESTING
+
+- Use disposable data whenever possible.
+- Never make this beta the only copy of an important file.
+- Verify important outputs by opening them or comparing hashes.
+- Cancellation removes application-created incomplete output whenever Windows
+  permits.
+- Password-protected archives are unsupported.
+- Database backup, cloning, disk imaging, cloud backup, scheduling, telemetry,
+  and automatic updates are outside this beta.
+
+SUGGESTED TESTS
+
+- Single file, folder, and mixed multi-source copy
+- HDD, SSD, removable, network, or VM storage
+- Many small files and large files
+- Pause/Resume between files
+- Cancellation and cleanup
+- 7z creation and extraction
+- ZIP creation and extraction
+- Compression choices
+- Progress percentage, speed, and waiting-for-storage display
+- Open Destination and Diagnostic Log
+- Fixed-size interface at normal Windows scaling
+
+LOCAL DIAGNOSTIC RECORDS
+
+After each operation ARCHive writes a local JSON diagnostic record under:
+
+%LOCALAPPDATA%\ARCHive\Logs
+
+Records may include full source, destination, and output paths; file names;
+operation type and result; duration; file and byte counts; speed; warnings;
+errors; engine exit codes and limited output; and Windows, architecture, .NET,
+and ARCHive version information.
+
+Records are not uploaded automatically. ARCHive contains no telemetry or cloud
+reporting. Records older than 30 days are removed when a new operation record
+is written. Uninstalling does not automatically remove existing records.
+
+FEEDBACK
+
+Complete ARCHive_Beta_Test_Questionnaire.docx and email it to:
+
+GunborgServers@gmail.com
+
+Screenshots, videos, and relevant diagnostic JSON files are welcome. Review a
+diagnostic file before emailing because it can contain personal folder names
+and complete file paths.
+
+Thank you for testing ARCHive.
