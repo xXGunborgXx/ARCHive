@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using ARCHive.Core;
 
@@ -5,7 +6,9 @@ namespace ARCHive.Copy;
 
 internal sealed class PausableFolderCopyRunner(CopyPauseController pauseController)
 {
-    private const int BufferSize = 1024 * 1024;
+    private const int MinBufferSize = 256 * 1024;
+    private const int DefaultBufferSize = 1024 * 1024;
+    private const int MaxBufferSize = 4 * 1024 * 1024;
     private static readonly TimeSpan ProgressInterval =
         TimeSpan.FromMilliseconds(250);
 
@@ -230,19 +233,18 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
         {
             operationCancellation.Cancel();
             await DrainAsync(active);
-            var cleanup = DeleteOwnedOutput(job);
             stopwatch.Stop();
             details.Add(ex.ToString());
-            details.Add(cleanup.Details);
+            var preservedBytes = Math.Min(transferredBytes, job.TotalBytes);
             return new JobResult(
                 job.JobId,
                 JobStatus.Failed,
                 job.OutputPath,
-                Math.Min(transferredBytes, job.TotalBytes),
+                preservedBytes,
                 completedFiles,
                 stopwatch.Elapsed,
                 null,
-                $"Copy stopped safely: {ex.Message}",
+                $"Copy stopped safely: {ex.Message}. {completedFiles} files ({PathUtilities.FormatBytesForLog(preservedBytes)}) were preserved at the destination.",
                 string.Join(Environment.NewLine, details));
         }
         finally
@@ -381,9 +383,14 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
                     },
                     cancellationToken);
             }
-            catch (IOException ex) when (
-                ex is not SourceChangedException &&
-                attempt < 2)
+            catch (SourceChangedException) when (attempt < 2)
+            {
+                transferred(-attemptBytes);
+                lastError = new IOException(
+                    $"The source changed while copying {entry.RelativePath}. Retrying in 2 seconds...");
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+            }
+            catch (IOException ex) when (attempt < 2)
             {
                 transferred(-attemptBytes);
                 lastError = ex;
@@ -408,34 +415,47 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
 
         try
         {
+            var bufferSize = SelectBufferSize(entry.Length);
             await using var source = new FileStream(
                 entry.SourcePath,
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read,
-                BufferSize,
+                bufferSize,
                 FileOptions.Asynchronous | FileOptions.SequentialScan);
             await using var target = new FileStream(
                 temporary,
                 FileMode.CreateNew,
                 FileAccess.Write,
                 FileShare.None,
-                BufferSize,
+                bufferSize,
                 FileOptions.Asynchronous | FileOptions.SequentialScan);
-            var buffer = new byte[BufferSize];
-
-            while (true)
+            var readBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            var writeBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            try
             {
-                var read = await source.ReadAsync(buffer, cancellationToken);
-                if (read == 0)
+                var currentBuffer = readBuffer;
+                var otherBuffer = writeBuffer;
+                var bytesRead = await source.ReadAsync(
+                    currentBuffer.AsMemory(0, bufferSize), cancellationToken);
+                while (bytesRead > 0)
                 {
-                    break;
-                }
+                    var writeTask = target.WriteAsync(
+                        currentBuffer.AsMemory(0, bytesRead), cancellationToken);
+                    var readTask = source.ReadAsync(
+                        otherBuffer.AsMemory(0, bufferSize), cancellationToken);
 
-                await target.WriteAsync(
-                    buffer.AsMemory(0, read),
-                    cancellationToken);
-                transferred(read);
+                    await writeTask;
+                    transferred(bytesRead);
+
+                    bytesRead = await readTask;
+                    (currentBuffer, otherBuffer) = (otherBuffer, currentBuffer);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(readBuffer);
+                ArrayPool<byte>.Shared.Return(writeBuffer);
             }
 
             await target.FlushAsync(cancellationToken);
@@ -465,6 +485,13 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
             throw;
         }
     }
+
+    private static int SelectBufferSize(long fileSize) =>
+        fileSize <= 16 * 1024 * 1024
+            ? MinBufferSize
+            : fileSize <= 256 * 1024 * 1024
+                ? DefaultBufferSize
+                : MaxBufferSize;
 
     private static void RecordOutcomes(
         IEnumerable<FileCopyOutcome> outcomes,
@@ -530,25 +557,13 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
     {
         try
         {
-            var root = Path.GetPathRoot(job.DestinationRoot);
-            var type = string.IsNullOrWhiteSpace(root)
-                ? (DriveType?)null
-                : new DriveInfo(root).DriveType;
-            if (type is DriveType.Network or DriveType.Removable ||
-                job.DestinationRoot.StartsWith(
-                    @"\\",
-                    StringComparison.Ordinal))
-            {
-                return 2;
-            }
+            return DriveClassifier.RecommendedConcurrency(
+                job.DestinationRoot, job.LargestFileBytes);
         }
-        catch (Exception ex) when (
-            ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch
         {
             return 2;
         }
-
-        return job.LargestFileBytes >= 256L * 1024 * 1024 ? 2 : 8;
     }
 
     private static async Task DrainAsync(

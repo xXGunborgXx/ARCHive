@@ -222,7 +222,7 @@ public sealed class JobPlanner
             createdAt,
             isMultiSource);
 
-        long? freeBytes = TryGetAvailableFreeSpace(destinationRoot);
+        long? freeBytes = PathUtilities.TryGetAvailableFreeSpace(destinationRoot);
         if (freeBytes.HasValue && totalBytes > freeBytes.Value)
         {
             issues.Add(Error(
@@ -230,7 +230,7 @@ public sealed class JobPlanner
                 "The destination does not have enough available space."));
         }
 
-        var destinationFormat = TryGetDriveFormat(destinationRoot);
+        var destinationFormat = PathUtilities.TryGetDriveFormat(destinationRoot);
         if (string.Equals(destinationFormat, "FAT32", StringComparison.OrdinalIgnoreCase) &&
             largestFileBytes > Fat32MaximumFileBytes)
         {
@@ -336,39 +336,7 @@ public sealed class JobPlanner
     }
 
     private static string GetTopLevelName(string sourcePath) =>
-        Directory.Exists(sourcePath)
-            ? new DirectoryInfo(sourcePath).Name
-            : Path.GetFileName(sourcePath);
-
-    private static long? TryGetAvailableFreeSpace(string destinationRoot)
-    {
-        try
-        {
-            var root = Path.GetPathRoot(destinationRoot);
-            return string.IsNullOrWhiteSpace(root)
-                ? null
-                : new DriveInfo(root).AvailableFreeSpace;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
-    }
-
-    private static string? TryGetDriveFormat(string destinationRoot)
-    {
-        try
-        {
-            var root = Path.GetPathRoot(destinationRoot);
-            return string.IsNullOrWhiteSpace(root)
-                ? null
-                : new DriveInfo(root).DriveFormat;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
-    }
+        PathUtilities.GetTopLevelName(sourcePath);
 
     private static ValidationIssue Error(string code, string message) =>
         new(ValidationSeverity.Error, code, message);

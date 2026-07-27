@@ -280,7 +280,7 @@ public sealed class CopyJobRunnerTests
     }
 
     [TestMethod]
-    public async Task RunAsync_SourceChangeWhilePausedFailsAndRemovesOutput()
+    public async Task RunAsync_SourceChangeWhilePausedFailsAndPreservesPartialOutput()
     {
         using var fixture = new CopyFixture();
         var source = CreatePauseFixture(fixture);
@@ -318,8 +318,8 @@ public sealed class CopyJobRunnerTests
 
         var result = await run;
         Assert.AreEqual(JobStatus.Failed, result.Status);
-        StringAssert.Contains(result.Summary, "source");
-        Assert.IsFalse(Directory.Exists(result.OutputPath));
+        StringAssert.Contains(result.Summary, "preserved");
+        Assert.IsTrue(Directory.Exists(result.OutputPath));
     }
 
     [TestMethod]

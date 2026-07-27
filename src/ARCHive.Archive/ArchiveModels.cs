@@ -33,6 +33,7 @@ public sealed record ArchiveCreateSpec(
     long TotalBytes,
     long TotalFiles,
     DateTimeOffset CreatedAt,
+    bool VerifyAfterCreate = true,
     IReadOnlyList<ArchiveSourceSpec>? Sources = null);
 
 public sealed record ArchiveExtractSpec(

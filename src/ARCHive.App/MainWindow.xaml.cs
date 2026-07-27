@@ -331,6 +331,7 @@ public partial class MainWindow : Window
                         SelectedArchiveFormat(),
                         SelectedCompressionPreset(),
                         createdAt,
+                        SelectedVerifyAfterCreate(),
                         token);
                     ShowCreatePreflight(_createPreflight);
                     break;
@@ -469,7 +470,8 @@ public partial class MainWindow : Window
                     DestinationTextBox.Text,
                     SelectedArchiveFormat(),
                     SelectedCompressionPreset(),
-                    createdAt);
+                    createdAt,
+                    SelectedVerifyAfterCreate());
                 if (!createPlan.IsValid || createPlan.Job is null)
                 {
                     _createPreflight = createPlan;
@@ -1001,6 +1003,9 @@ public partial class MainWindow : Window
             2 => CompressionPreset.Smallest,
             _ => CompressionPreset.Balanced
         };
+
+    private bool SelectedVerifyAfterCreate() =>
+        VerifyArchiveCheckBox.IsChecked == true;
 
     private bool HasValidPreflight() =>
         _selectedAction switch

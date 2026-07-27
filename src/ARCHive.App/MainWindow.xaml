@@ -504,6 +504,8 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="20"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel>
                                     <TextBlock Text="ARCHIVE TYPE"
@@ -538,6 +540,17 @@
                                         <ComboBoxItem Content="Balanced"/>
                                         <ComboBoxItem Content="Smallest"/>
                                     </ComboBox>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4"
+                                            VerticalAlignment="Center">
+                                    <CheckBox x:Name="VerifyArchiveCheckBox"
+                                              Content="Verify after create"
+                                              Foreground="{StaticResource MutedBrush}"
+                                              FontSize="11"
+                                              IsChecked="True"
+                                              Margin="0,0,0,2"
+                                              Checked="OnArchiveOptionChanged"
+                                              Unchecked="OnArchiveOptionChanged"/>
                                 </StackPanel>
                             </Grid>
                         </Border>

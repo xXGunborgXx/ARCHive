@@ -64,16 +64,17 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                 {
                     "a",
                     job.Format == ArchiveFormat.SevenZip ? "-t7z" : "-tzip",
-                    CompressionArgument(job.Compression),
                     "-mmt=on",
                     "-y",
                     "-bso1",
                     "-bse1",
                     "-bsp1",
-                    "-sccUTF-8",
-                    temporaryPath,
-                    "--"
+                    "-sccUTF-8"
                 };
+                createArguments.AddRange(
+                    CompressionArguments(job.Compression, job.Format));
+                createArguments.Add(temporaryPath);
+                createArguments.Add("--");
                 createArguments.AddRange(
                     batch.Sources.Select(source => source.EntryName));
                 var bytesBeforeSource = completedBytes;
@@ -163,42 +164,45 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                 null,
                 true));
 
-            var testResult = await RunToolAsync(
-                ["t", temporaryPath, "-bso1", "-bse1", "-bsp0", "-sccUTF-8"],
-                output,
-                progressLine: null,
-                cancellationToken);
-
-            if (testResult.Cancelled)
+            if (job.VerifyAfterCreate)
             {
-                TryDeleteOwnedFile(temporaryPath);
-                stopwatch.Stop();
-                return new JobResult(
-                    job.JobId,
-                    JobStatus.Cancelled,
-                    job.OutputPath,
-                    0,
-                    0,
-                    stopwatch.Elapsed,
-                    null,
-                    "Archive verification cancelled. No final archive was published.",
-                    output.ToString());
-            }
+                var testResult = await RunToolAsync(
+                    ["t", temporaryPath, "-bso1", "-bse1", "-bsp0", "-sccUTF-8"],
+                    output,
+                    progressLine: null,
+                    cancellationToken);
 
-            if (testResult.ExitCode != 0)
-            {
-                TryDeleteOwnedFile(temporaryPath);
-                stopwatch.Stop();
-                return new JobResult(
-                    job.JobId,
-                    JobStatus.Failed,
-                    job.OutputPath,
-                    0,
-                    0,
-                    stopwatch.Elapsed,
-                    testResult.ExitCode,
-                    "The archive was created but failed verification.",
-                    output.ToString());
+                if (testResult.Cancelled)
+                {
+                    TryDeleteOwnedFile(temporaryPath);
+                    stopwatch.Stop();
+                    return new JobResult(
+                        job.JobId,
+                        JobStatus.Cancelled,
+                        job.OutputPath,
+                        0,
+                        0,
+                        stopwatch.Elapsed,
+                        null,
+                        "Archive verification cancelled. No final archive was published.",
+                        output.ToString());
+                }
+
+                if (testResult.ExitCode != 0)
+                {
+                    TryDeleteOwnedFile(temporaryPath);
+                    stopwatch.Stop();
+                    return new JobResult(
+                        job.JobId,
+                        JobStatus.Failed,
+                        job.OutputPath,
+                        0,
+                        0,
+                        stopwatch.Elapsed,
+                        testResult.ExitCode,
+                        "The archive was created but failed verification.",
+                        output.ToString());
+                }
             }
 
             File.Move(temporaryPath, job.OutputPath);
@@ -213,7 +217,9 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                 job.TotalFiles,
                 stopwatch.Elapsed,
                 0,
-                "The archive was created and verified successfully.",
+                job.VerifyAfterCreate
+                    ? "The archive was created and verified successfully."
+                    : "The archive was created successfully (verification skipped).",
                 output.ToString());
         }
         catch (OperationCanceledException)
@@ -362,7 +368,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                     output.ToString());
             }
 
-            var freeBytes = TryGetAvailableFreeSpace(job.DestinationRoot);
+            var freeBytes = PathUtilities.TryGetAvailableFreeSpace(job.DestinationRoot);
             if (freeBytes.HasValue && totalBytes > freeBytes.Value)
             {
                 stopwatch.Stop();
@@ -503,7 +509,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
         {
             output.Add($"Working directory: {workingDirectory}");
         }
-        output.Add($"Arguments: {FormatArgumentsForLog(startInfo.ArgumentList)}");
+        output.Add($"Arguments: {PathUtilities.FormatArgumentsForLog(startInfo.ArgumentList)}");
 
         using var process = new Process { StartInfo = startInfo };
         if (!process.Start())
@@ -768,29 +774,15 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
         return $"Adding {batch.Sources.Count:N0} selected items ({first:N0}-{last:N0} of {sourceCount:N0})";
     }
 
-    private static string CompressionArgument(CompressionPreset preset) =>
+    private static string[] CompressionArguments(CompressionPreset preset, ArchiveFormat format) =>
         preset switch
         {
-            CompressionPreset.Fast => "-mx=1",
-            CompressionPreset.Smallest => "-mx=9",
-            _ => "-mx=5"
+            CompressionPreset.Fast => ["-mx=1"],
+            CompressionPreset.Smallest => format == ArchiveFormat.Zip
+                ? ["-mx=9", "-md=27"]
+                : ["-mx=9"],
+            _ => ["-mx=5"]
         };
-
-    private static long? TryGetAvailableFreeSpace(string destinationRoot)
-    {
-        try
-        {
-            var root = Path.GetPathRoot(destinationRoot);
-            return string.IsNullOrWhiteSpace(root)
-                ? null
-                : new DriveInfo(root).AvailableFreeSpace;
-        }
-        catch (Exception ex) when (
-            ex is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
-    }
 
     private static JobResult MissingToolResult(
         Guid jobId,
@@ -870,23 +862,6 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
         return string.IsNullOrWhiteSpace(existing)
             ? detail
             : $"{existing}{Environment.NewLine}{detail}";
-    }
-
-    private static string FormatArgumentsForLog(
-        System.Collections.ObjectModel.Collection<string> arguments)
-    {
-        var builder = new StringBuilder();
-        foreach (var argument in arguments)
-        {
-            if (builder.Length > 0)
-            {
-                builder.Append(' ');
-            }
-
-            builder.Append('"').Append(argument.Replace("\"", "\\\"")).Append('"');
-        }
-
-        return builder.ToString();
     }
 
     [GeneratedRegex(@"(?<!\d)(\d{1,3})%")]

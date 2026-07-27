@@ -10,6 +10,7 @@ public sealed class ArchiveJobPlanner
         ArchiveFormat format,
         CompressionPreset compression,
         DateTimeOffset createdAt,
+        bool verifyAfterCreate = true,
         CancellationToken cancellationToken = default) =>
         await PlanCreateAsync(
             [sourceInput],
@@ -17,6 +18,7 @@ public sealed class ArchiveJobPlanner
             format,
             compression,
             createdAt,
+            verifyAfterCreate,
             cancellationToken);
 
     public async Task<ArchivePlanResult<ArchiveCreateSpec>> PlanCreateAsync(
@@ -25,6 +27,7 @@ public sealed class ArchiveJobPlanner
         ArchiveFormat format,
         CompressionPreset compression,
         DateTimeOffset createdAt,
+        bool verifyAfterCreate = true,
         CancellationToken cancellationToken = default)
     {
         var issues = new List<ValidationIssue>();
@@ -258,7 +261,7 @@ public sealed class ArchiveJobPlanner
             format,
             createdAt,
             sourceSpecs.Count > 1);
-        var freeBytes = TryGetAvailableFreeSpace(destinationRoot);
+        var freeBytes = PathUtilities.TryGetAvailableFreeSpace(destinationRoot);
         long conservativeRequired;
         try
         {
@@ -289,6 +292,7 @@ public sealed class ArchiveJobPlanner
             totalBytes,
             totalFiles,
             createdAt,
+            verifyAfterCreate,
             sourceSpecs);
 
         return new ArchivePlanResult<ArchiveCreateSpec>(spec, issues, freeBytes);
@@ -354,7 +358,7 @@ public sealed class ArchiveJobPlanner
         var outputPath = CreateAvailableDirectoryPath(
             destinationRoot,
             $"{baseName} - Extracted {createdAt.ToLocalTime():yyyy-MM-dd HHmm}");
-        var freeBytes = TryGetAvailableFreeSpace(destinationRoot);
+        var freeBytes = PathUtilities.TryGetAvailableFreeSpace(destinationRoot);
         var spec = new ArchiveExtractSpec(
             Guid.NewGuid(),
             archivePath,
@@ -425,9 +429,7 @@ public sealed class ArchiveJobPlanner
     }
 
     private static string GetTopLevelName(string sourcePath) =>
-        Directory.Exists(sourcePath)
-            ? new DirectoryInfo(sourcePath).Name
-            : Path.GetFileName(sourcePath);
+        PathUtilities.GetTopLevelName(sourcePath);
 
     private static string CreateAvailableDirectoryPath(
         string destinationRoot,
@@ -442,21 +444,6 @@ public sealed class ArchiveJobPlanner
         }
 
         return candidate;
-    }
-
-    private static long? TryGetAvailableFreeSpace(string destinationRoot)
-    {
-        try
-        {
-            var root = Path.GetPathRoot(destinationRoot);
-            return string.IsNullOrWhiteSpace(root)
-                ? null
-                : new DriveInfo(root).AvailableFreeSpace;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
     }
 
     private static ValidationIssue Error(string code, string message) =>
