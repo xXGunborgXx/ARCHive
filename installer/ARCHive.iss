@@ -1,5 +1,5 @@
 #define MyAppName "ARCHive"
-#define MyAppVersion "1.2.0-beta3"
+#define MyAppVersion "1.2.1-beta4"
 #define MyAppPublisher "ARCHive Project"
 #define MyAppExeName "ARCHive.exe"
 
@@ -14,7 +14,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=output
-OutputBaseFilename=ARCHive-Beta-1.2.0-beta3-7day-Setup
+OutputBaseFilename=ARCHive-Beta-1.2.1-beta4-7day-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern dark includetitlebar hidebevels
@@ -70,11 +70,13 @@ Root: HKCU; Subkey: "Software\Classes\Directory\shell\ARCHiveArchive\command"; V
 ; "Extract with ARCHive" for .7z files
 Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.7z\shell\ARCHiveExtract"; ValueType: string; ValueName: ""; ValueData: "Extract with ARCHive"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.7z\shell\ARCHiveExtract"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\{#MyAppExeName}"""
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.7z\shell\ARCHiveExtract"; ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Single"
 Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.7z\shell\ARCHiveExtract\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" --extract ""%1"""
 
 ; "Extract with ARCHive" for .zip files
 Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.zip\shell\ARCHiveExtract"; ValueType: string; ValueName: ""; ValueData: "Extract with ARCHive"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.zip\shell\ARCHiveExtract"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\{#MyAppExeName}"""
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.zip\shell\ARCHiveExtract"; ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Single"
 Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.zip\shell\ARCHiveExtract\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" --extract ""%1"""
 
 [Run]

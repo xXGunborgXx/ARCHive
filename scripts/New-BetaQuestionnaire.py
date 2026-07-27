@@ -332,7 +332,7 @@ def configure_document(doc):
     )
     set_cell_text(
         table.cell(0, 1),
-        "Seven-Day Beta • 1.0.0-beta1",
+        "Seven-Day Beta • 1.2.1-beta4",
         color=MUTED,
         size=9,
     )
@@ -387,7 +387,7 @@ def build():
     meta = doc.add_table(rows=2, cols=2)
     meta.style = "Table Grid"
     data = [
-        ("Version", "1.0.0-beta1"),
+        ("Version", "1.2.1-beta4"),
         ("Return to", "GunborgServers@gmail.com"),
         ("Trial", "Seven days from first launch"),
         ("Format", "Edit in Word or compatible software"),

@@ -2,6 +2,29 @@
 
 All notable changes to ARCHive are documented in this file.
 
+## [1.2.1-beta4] - 2026-07-27
+
+### Safety and Reliability
+
+- Explorer selections are accepted before the first-run notice and forwarded
+  through a current-user-only named pipe, preventing multi-selection paths
+  from being lost during startup.
+- Failed copy jobs now remove the entire dated output whenever cleanup
+  succeeds, matching cancellation behavior and avoiding ambiguous partial
+  results.
+- Archive verification is mandatory. A created archive is published only
+  after the 7-Zip integrity test succeeds.
+- Drive classification now uses the correct Windows NVMe bus value and the
+  device seek-penalty descriptor, avoiding HDDs being treated as SSDs.
+- Extract context-menu entries explicitly accept only one selected archive.
+
+### Distribution
+
+- The GitHub prerelease provides the installer, Markdown instructions,
+  plain-text instructions and disclosures, and editable questionnaire as four
+  separate downloadable files.
+- Automated coverage is 48 unit tests and 26 integration tests (74 total).
+
 ## [1.2.0-beta3] - 2026-07-27
 
 ### Features

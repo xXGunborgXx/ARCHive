@@ -1,4 +1,7 @@
 using System.Windows;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("ARCHive.IntegrationTests")]
 
 [assembly:ThemeInfo(
     ResourceDictionaryLocation.None,            //where theme specific resource dictionaries are located
