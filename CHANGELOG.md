@@ -36,6 +36,16 @@ All notable changes to ARCHive are documented in this file.
 - **Context menu disclosure** — installation disclosure and user instructions
   updated to describe the new context menu entries and their behavior.
 
+### Bug Fixes
+
+- **Multi-file context menu single-instance fix** — Windows Explorer invokes
+  `%1` context menu commands once per selected file, which previously opened
+  multiple ARCHive instances (one per file) instead of one instance with all
+  files loaded. Added `SingleInstanceService` with named mutex detection and
+  named pipe IPC so subsequent launches send their file paths to the running
+  instance and exit. The first instance collects all files into a single
+  window.
+
 ## [1.1.0-beta2] - 2026-07-27
 
 ### Bug Fixes
