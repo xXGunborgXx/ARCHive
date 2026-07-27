@@ -233,18 +233,21 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
         {
             operationCancellation.Cancel();
             await DrainAsync(active);
+            var cleanup = DeleteOwnedOutput(job);
             stopwatch.Stop();
             details.Add(ex.ToString());
-            var preservedBytes = Math.Min(transferredBytes, job.TotalBytes);
+            details.Add(cleanup.Details);
             return new JobResult(
                 job.JobId,
                 JobStatus.Failed,
                 job.OutputPath,
-                preservedBytes,
-                completedFiles,
+                cleanup.Removed ? 0 : Math.Min(transferredBytes, job.TotalBytes),
+                cleanup.Removed ? 0 : completedFiles,
                 stopwatch.Elapsed,
                 null,
-                $"Copy stopped safely: {ex.Message}. {completedFiles} files ({PathUtilities.FormatBytesForLog(preservedBytes)}) were preserved at the destination.",
+                cleanup.Removed
+                    ? $"Copy failed: {ex.Message}. The entire dated output was removed. The source was not changed."
+                    : $"Copy failed: {ex.Message}. Incomplete output remains and must not be treated as completed. The source was not changed.",
                 string.Join(Environment.NewLine, details));
         }
         finally

@@ -10,7 +10,10 @@ public sealed class DriveClassifierTests
     [DataRow(0x01u, DriveBusType.SCSI)]
     [DataRow(0x07u, DriveBusType.USB)]
     [DataRow(0x0Bu, DriveBusType.SATA)]
-    [DataRow(0x0Du, DriveBusType.NVMe)]
+    [DataRow(0x0Eu, DriveBusType.Virtual)]
+    [DataRow(0x0Fu, DriveBusType.Virtual)]
+    [DataRow(0x10u, DriveBusType.Virtual)]
+    [DataRow(0x11u, DriveBusType.NVMe)]
     [DataRow(0x00u, DriveBusType.Unknown)]
     [DataRow(0xFFu, DriveBusType.Unknown)]
     public void MapBusType_ReturnsCorrectBusType(uint input, DriveBusType expected)
@@ -25,20 +28,28 @@ public sealed class DriveClassifierTests
     }
 
     [TestMethod]
-    public void ClassifySpeed_NVMe_ReturnsFast()
+    [DataRow(DriveBusType.NVMe, null, DriveSpeedClass.Fast)]
+    [DataRow(DriveBusType.SATA, false, DriveSpeedClass.Fast)]
+    [DataRow(DriveBusType.SATA, true, DriveSpeedClass.Slow)]
+    [DataRow(DriveBusType.SCSI, null, DriveSpeedClass.Medium)]
+    [DataRow(DriveBusType.USB, false, DriveSpeedClass.Slow)]
+    public void ClassifySpeed_UsesSeekPenaltyAndBusType(
+        DriveBusType busType,
+        bool? incursSeekPenalty,
+        DriveSpeedClass expected)
     {
         var classifyMethod = typeof(DriveClassifier).GetMethod(
             "ClassifySpeed",
-            BindingFlags.Public | BindingFlags.Static);
-        var mapMethod = typeof(DriveClassifier).GetMethod(
-            "MapBusType",
-            BindingFlags.NonPublic | BindingFlags.Static);
+            BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            [typeof(DriveBusType), typeof(bool?)],
+            modifiers: null);
 
         Assert.IsNotNull(classifyMethod);
-        Assert.IsNotNull(mapMethod);
-
-        var nvMeValue = (DriveBusType)mapMethod.Invoke(null, [0x0Du])!;
-        Assert.AreEqual(DriveBusType.NVMe, nvMeValue);
+        var result = classifyMethod.Invoke(
+            null,
+            [busType, incursSeekPenalty]);
+        Assert.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -46,10 +57,15 @@ public sealed class DriveClassifierTests
     {
         var method = typeof(DriveClassifier).GetMethod(
             "RecommendedConcurrency",
-            BindingFlags.Public | BindingFlags.Static);
+            BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            [typeof(DriveSpeedClass), typeof(long)],
+            modifiers: null);
         Assert.IsNotNull(method);
 
-        var result = (int)method.Invoke(null, ["C:\\", 256L * 1024 * 1024])!;
+        var result = (int)method.Invoke(
+            null,
+            [DriveSpeedClass.Fast, 256L * 1024 * 1024])!;
         Assert.AreEqual(2, result);
     }
 
@@ -58,10 +74,15 @@ public sealed class DriveClassifierTests
     {
         var method = typeof(DriveClassifier).GetMethod(
             "RecommendedConcurrency",
-            BindingFlags.Public | BindingFlags.Static);
+            BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            [typeof(DriveSpeedClass), typeof(long)],
+            modifiers: null);
         Assert.IsNotNull(method);
 
-        var result = (int)method.Invoke(null, ["C:\\", 1024L])!;
+        var result = (int)method.Invoke(
+            null,
+            [DriveSpeedClass.Fast, 1024L])!;
         Assert.AreEqual(8, result);
     }
 }

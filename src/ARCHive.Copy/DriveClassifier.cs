@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
-using System.Text;
 
 namespace ARCHive.Copy;
 
@@ -46,12 +45,13 @@ public static class DriveClassifier
         out uint lpBytesReturned,
         IntPtr lpOverlapped);
 
-    private const uint GENERIC_READ = 0x80000000;
     private const uint FILE_SHARE_READ = 0x00000001;
     private const uint FILE_SHARE_WRITE = 0x00000002;
     private const uint OPEN_EXISTING = 3;
     private const uint IOCTL_STORAGE_QUERY_PROPERTY = 0x002D1400;
     private const uint PropertyStandardQuery = 0;
+    private const uint StorageDeviceProperty = 0;
+    private const uint StorageDeviceSeekPenaltyProperty = 7;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct STORAGE_PROPERTY_QUERY
@@ -84,6 +84,15 @@ public static class DriveClassifier
         public uint RawPropertiesLength;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct DEVICE_SEEK_PENALTY_DESCRIPTOR
+    {
+        public uint Version;
+        public uint Size;
+        [MarshalAs(UnmanagedType.U1)]
+        public bool IncursSeekPenalty;
+    }
+
     public static DriveBusType GetBusType(string path)
     {
         try
@@ -98,7 +107,7 @@ public static class DriveClassifier
 
             using var handle = CreateFileW(
                 devicePath,
-                GENERIC_READ,
+                0,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 IntPtr.Zero,
                 OPEN_EXISTING,
@@ -116,7 +125,7 @@ public static class DriveClassifier
             {
                 var query = new STORAGE_PROPERTY_QUERY
                 {
-                    PropertyId = 0,
+                    PropertyId = StorageDeviceProperty,
                     QueryType = PropertyStandardQuery
                 };
 
@@ -190,7 +199,10 @@ public static class DriveClassifier
         0x01 => DriveBusType.SCSI,
         0x07 => DriveBusType.USB,
         0x0B => DriveBusType.SATA,
-        0x0D => DriveBusType.NVMe,
+        0x0E => DriveBusType.Virtual,
+        0x0F => DriveBusType.Virtual,
+        0x10 => DriveBusType.Virtual,
+        0x11 => DriveBusType.NVMe,
         _ => DriveBusType.Unknown
     };
 
@@ -209,7 +221,7 @@ public static class DriveClassifier
             {
                 DriveType.Network => DriveBusType.Network,
                 DriveType.Removable => DriveBusType.USB,
-                DriveType.Fixed => DriveBusType.SATA,
+                DriveType.Fixed => DriveBusType.Unknown,
                 _ => DriveBusType.Unknown
             };
         }
@@ -222,25 +234,115 @@ public static class DriveClassifier
     public static DriveSpeedClass ClassifySpeed(string path)
     {
         var busType = GetBusType(path);
+        var seekPenalty = TryGetSeekPenalty(path);
+        return ClassifySpeed(busType, seekPenalty);
+    }
+
+    internal static DriveSpeedClass ClassifySpeed(
+        DriveBusType busType,
+        bool? incursSeekPenalty)
+    {
+        if (busType is DriveBusType.USB or DriveBusType.Network ||
+            incursSeekPenalty == true)
+        {
+            return DriveSpeedClass.Slow;
+        }
+
+        if (incursSeekPenalty == false || busType == DriveBusType.NVMe)
+        {
+            return DriveSpeedClass.Fast;
+        }
+
         return busType switch
         {
-            DriveBusType.NVMe => DriveSpeedClass.Fast,
-            DriveBusType.SATA => DriveSpeedClass.Fast,
-            DriveBusType.SCSI => DriveSpeedClass.Fast,
-            DriveBusType.USB => DriveSpeedClass.Slow,
-            DriveBusType.Network => DriveSpeedClass.Slow,
             DriveBusType.Virtual => DriveSpeedClass.Medium,
             _ => DriveSpeedClass.Medium
         };
     }
 
+    private static bool? TryGetSeekPenalty(string path)
+    {
+        try
+        {
+            var root = Path.GetPathRoot(path);
+            if (string.IsNullOrEmpty(root))
+            {
+                return null;
+            }
+
+            using var handle = CreateFileW(
+                @"\\.\" + root.TrimEnd('\\'),
+                0,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                IntPtr.Zero,
+                OPEN_EXISTING,
+                0,
+                IntPtr.Zero);
+            if (handle.IsInvalid)
+            {
+                return null;
+            }
+
+            var query = new STORAGE_PROPERTY_QUERY
+            {
+                PropertyId = StorageDeviceSeekPenaltyProperty,
+                QueryType = PropertyStandardQuery
+            };
+            var querySize = Marshal.SizeOf<STORAGE_PROPERTY_QUERY>();
+            var descriptorSize =
+                Marshal.SizeOf<DEVICE_SEEK_PENALTY_DESCRIPTOR>();
+            var queryPtr = Marshal.AllocHGlobal(querySize);
+            var descriptorPtr = Marshal.AllocHGlobal(descriptorSize);
+            try
+            {
+                Marshal.StructureToPtr(query, queryPtr, false);
+                if (!DeviceIoControl(
+                        handle,
+                        IOCTL_STORAGE_QUERY_PROPERTY,
+                        queryPtr,
+                        (uint)querySize,
+                        descriptorPtr,
+                        (uint)descriptorSize,
+                        out _,
+                        IntPtr.Zero))
+                {
+                    return null;
+                }
+
+                return Marshal.PtrToStructure<DEVICE_SEEK_PENALTY_DESCRIPTOR>(
+                    descriptorPtr).IncursSeekPenalty;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(queryPtr);
+                Marshal.FreeHGlobal(descriptorPtr);
+            }
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public static int RecommendedConcurrency(string path, long largestFileBytes)
     {
         var speed = ClassifySpeed(path);
+        return RecommendedConcurrency(speed, largestFileBytes);
+    }
+
+    internal static int RecommendedConcurrency(
+        DriveSpeedClass speed,
+        long largestFileBytes)
+    {
+        if (largestFileBytes >= 256L * 1024 * 1024)
+        {
+            return 2;
+        }
+
         return speed switch
         {
             DriveSpeedClass.Slow => 2,
-            DriveSpeedClass.Fast => largestFileBytes >= 256L * 1024 * 1024 ? 2 : 8,
+            DriveSpeedClass.Fast => 8,
             _ => 4
         };
     }

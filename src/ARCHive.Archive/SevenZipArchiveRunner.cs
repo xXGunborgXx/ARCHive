@@ -164,45 +164,42 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                 null,
                 true));
 
-            if (job.VerifyAfterCreate)
+            var testResult = await RunToolAsync(
+                ["t", temporaryPath, "-bso1", "-bse1", "-bsp0", "-sccUTF-8"],
+                output,
+                progressLine: null,
+                cancellationToken);
+
+            if (testResult.Cancelled)
             {
-                var testResult = await RunToolAsync(
-                    ["t", temporaryPath, "-bso1", "-bse1", "-bsp0", "-sccUTF-8"],
-                    output,
-                    progressLine: null,
-                    cancellationToken);
+                TryDeleteOwnedFile(temporaryPath);
+                stopwatch.Stop();
+                return new JobResult(
+                    job.JobId,
+                    JobStatus.Cancelled,
+                    job.OutputPath,
+                    0,
+                    0,
+                    stopwatch.Elapsed,
+                    null,
+                    "Archive verification cancelled. No final archive was published.",
+                    output.ToString());
+            }
 
-                if (testResult.Cancelled)
-                {
-                    TryDeleteOwnedFile(temporaryPath);
-                    stopwatch.Stop();
-                    return new JobResult(
-                        job.JobId,
-                        JobStatus.Cancelled,
-                        job.OutputPath,
-                        0,
-                        0,
-                        stopwatch.Elapsed,
-                        null,
-                        "Archive verification cancelled. No final archive was published.",
-                        output.ToString());
-                }
-
-                if (testResult.ExitCode != 0)
-                {
-                    TryDeleteOwnedFile(temporaryPath);
-                    stopwatch.Stop();
-                    return new JobResult(
-                        job.JobId,
-                        JobStatus.Failed,
-                        job.OutputPath,
-                        0,
-                        0,
-                        stopwatch.Elapsed,
-                        testResult.ExitCode,
-                        "The archive was created but failed verification. The incomplete archive was removed.",
-                        output.ToString());
-                }
+            if (testResult.ExitCode != 0)
+            {
+                TryDeleteOwnedFile(temporaryPath);
+                stopwatch.Stop();
+                return new JobResult(
+                    job.JobId,
+                    JobStatus.Failed,
+                    job.OutputPath,
+                    0,
+                    0,
+                    stopwatch.Elapsed,
+                    testResult.ExitCode,
+                    "The archive was created but failed verification. The incomplete archive was removed.",
+                    output.ToString());
             }
 
             File.Move(temporaryPath, job.OutputPath);
@@ -217,9 +214,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                 job.TotalFiles,
                 stopwatch.Elapsed,
                 0,
-                job.VerifyAfterCreate
-                    ? "The archive was created and verified successfully."
-                    : "The archive was created successfully (verification skipped).",
+                "The archive was created and verified successfully.",
                 output.ToString());
         }
         catch (OperationCanceledException)

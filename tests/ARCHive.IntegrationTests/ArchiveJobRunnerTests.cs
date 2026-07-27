@@ -309,7 +309,7 @@ public sealed class ArchiveJobRunnerTests
     [TestMethod]
     [DataRow(ArchiveFormat.SevenZip)]
     [DataRow(ArchiveFormat.Zip)]
-    public async Task CreateAsync_WithVerifyAfterCreate_VerifiesAndReportsVerified(
+    public async Task CreateAsync_AlwaysVerifiesAndReportsVerified(
         ArchiveFormat format)
     {
         using var fixture = new ArchiveFixture();
@@ -325,8 +325,7 @@ public sealed class ArchiveJobRunnerTests
             destination,
             format,
             CompressionPreset.Balanced,
-            DateTimeOffset.Now,
-            verifyAfterCreate: true);
+            DateTimeOffset.Now);
 
         Assert.IsTrue(createPlan.IsValid);
         Assert.IsNotNull(createPlan.Job);
@@ -339,42 +338,6 @@ public sealed class ArchiveJobRunnerTests
         StringAssert.Contains(
             createResult.Summary,
             "created and verified successfully");
-    }
-
-    [TestMethod]
-    [DataRow(ArchiveFormat.SevenZip)]
-    [DataRow(ArchiveFormat.Zip)]
-    public async Task CreateAsync_WithoutVerifyAfterCreate_SkipsVerification(
-        ArchiveFormat format)
-    {
-        using var fixture = new ArchiveFixture();
-        var source = fixture.CreateDirectory("noverify-source");
-        fixture.CreateFile(
-            Path.Combine("noverify-source", "data.txt"),
-            "skip verify");
-        var destination = fixture.CreateDirectory("destination");
-        var planner = new ArchiveJobPlanner();
-
-        var createPlan = await planner.PlanCreateAsync(
-            source,
-            destination,
-            format,
-            CompressionPreset.Balanced,
-            DateTimeOffset.Now,
-            verifyAfterCreate: false);
-
-        Assert.IsTrue(createPlan.IsValid);
-        Assert.IsNotNull(createPlan.Job);
-        var runner = new SevenZipArchiveRunner(SevenZipPath());
-        var createResult = await runner.CreateAsync(
-            createPlan.Job,
-            progress: null);
-
-        Assert.AreEqual(JobStatus.Completed, createResult.Status, createResult.EngineDetails);
-        StringAssert.Contains(
-            createResult.Summary,
-            "verification skipped");
-        Assert.IsTrue(File.Exists(createResult.OutputPath));
     }
 
     private static string SevenZipPath() =>

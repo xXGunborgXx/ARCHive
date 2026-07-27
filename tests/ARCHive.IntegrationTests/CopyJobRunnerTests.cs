@@ -57,7 +57,7 @@ public sealed class CopyJobRunnerTests
         StringAssert.Contains(
             result.EngineDetails,
             "Copy engine: cooperative pause coordinator");
-        StringAssert.Contains(result.EngineDetails, "Concurrent files: 8");
+        StringAssert.Contains(result.EngineDetails, "Concurrent files: 4");
         StringAssert.Contains(result.EngineDetails, "Verification:");
     }
 
@@ -280,7 +280,7 @@ public sealed class CopyJobRunnerTests
     }
 
     [TestMethod]
-    public async Task RunAsync_SourceChangeWhilePausedFailsAndPreservesPartialOutput()
+    public async Task RunAsync_SourceChangeWhilePausedFailsAndRemovesOutput()
     {
         using var fixture = new CopyFixture();
         var source = CreatePauseFixture(fixture);
@@ -318,8 +318,8 @@ public sealed class CopyJobRunnerTests
 
         var result = await run;
         Assert.AreEqual(JobStatus.Failed, result.Status);
-        StringAssert.Contains(result.Summary, "preserved");
-        Assert.IsTrue(Directory.Exists(result.OutputPath));
+        StringAssert.Contains(result.Summary, "entire dated output was removed");
+        Assert.IsFalse(Directory.Exists(result.OutputPath));
     }
 
     [TestMethod]

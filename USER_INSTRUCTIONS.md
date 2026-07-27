@@ -2,7 +2,7 @@
 
 Status: Seven-day beta instructions
 
-Current beta: 1.2.0-beta3
+Current beta: 1.2.1-beta4
 
 ## Seven-Day Beta Period
 

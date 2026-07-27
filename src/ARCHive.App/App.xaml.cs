@@ -7,11 +7,39 @@ namespace ARCHive.App;
 public partial class App : Application
 {
     private SingleInstanceService? _singleInstance;
+    private readonly object _pendingArgsLock = new();
+    private readonly Queue<string[]> _pendingArgs = new();
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+        _singleInstance = new SingleInstanceService();
+        _singleInstance.ArgumentsReceived += OnSecondInstanceArgs;
+        if (!_singleInstance.TryAcquire(e.Args))
+        {
+            if (!_singleInstance.LastForwardSucceeded)
+            {
+                new BetaNoticeWindow(
+                    "Could not add the selection",
+                    "ARCHive is already running, but Windows could not pass " +
+                    "this selection to it." + Environment.NewLine +
+                    Environment.NewLine +
+                    "Please add the files from the open ARCHive window." +
+                    (string.IsNullOrWhiteSpace(_singleInstance.LastForwardError)
+                        ? string.Empty
+                        : Environment.NewLine + Environment.NewLine +
+                          "Technical detail: " +
+                          _singleInstance.LastForwardError),
+                    "Close").ShowDialog();
+            }
+
+            Shutdown();
+            return;
+        }
+
+        _singleInstance.StartListening();
 
         var trial = new BetaTrialGate().Check(DateTimeOffset.UtcNow);
         if (!trial.Decision.IsAllowed)
@@ -60,13 +88,6 @@ public partial class App : Application
             }
         }
 
-        _singleInstance = new SingleInstanceService();
-        if (!_singleInstance.TryAcquire(e.Args))
-        {
-            Shutdown();
-            return;
-        }
-
         var contextMenu = ContextMenuArgs.Parse(e.Args);
 
         if (contextMenu.HasError)
@@ -102,33 +123,47 @@ public partial class App : Application
         MainWindow = mainWindow;
         mainWindow.Show();
         ShutdownMode = ShutdownMode.OnMainWindowClose;
-
-        _singleInstance.ArgumentsReceived += OnSecondInstanceArgs;
-        _singleInstance.StartListening();
+        DrainPendingArguments();
     }
 
     private void OnSecondInstanceArgs(string[] args)
     {
-        if (MainWindow is not { } window)
+        lock (_pendingArgsLock)
+        {
+            _pendingArgs.Enqueue(args);
+        }
+
+        _ = Dispatcher.BeginInvoke(DrainPendingArguments);
+    }
+
+    private void DrainPendingArguments()
+    {
+        if (MainWindow is not MainWindow mainWindow)
         {
             return;
         }
 
-        var parsed = ContextMenuArgs.Parse(args);
-        if (parsed.HasError || parsed.IsEmpty)
+        while (true)
         {
-            return;
-        }
+            string[] args;
+            lock (_pendingArgsLock)
+            {
+                if (_pendingArgs.Count == 0)
+                {
+                    return;
+                }
 
-        Dispatcher.Invoke(() =>
-        {
-            if (window is MainWindow mainWindow)
+                args = _pendingArgs.Dequeue();
+            }
+
+            var parsed = ContextMenuArgs.Parse(args);
+            if (!parsed.HasError && !parsed.IsEmpty)
             {
                 mainWindow.InjectFromContextMenu(
                     parsed.Action.ToJobAction(),
                     parsed.SourcePaths);
             }
-        });
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)

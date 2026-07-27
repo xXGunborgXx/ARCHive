@@ -10,7 +10,6 @@ public sealed class ArchiveJobPlanner
         ArchiveFormat format,
         CompressionPreset compression,
         DateTimeOffset createdAt,
-        bool verifyAfterCreate = true,
         CancellationToken cancellationToken = default) =>
         await PlanCreateAsync(
             [sourceInput],
@@ -18,7 +17,6 @@ public sealed class ArchiveJobPlanner
             format,
             compression,
             createdAt,
-            verifyAfterCreate,
             cancellationToken);
 
     public async Task<ArchivePlanResult<ArchiveCreateSpec>> PlanCreateAsync(
@@ -27,7 +25,6 @@ public sealed class ArchiveJobPlanner
         ArchiveFormat format,
         CompressionPreset compression,
         DateTimeOffset createdAt,
-        bool verifyAfterCreate = true,
         CancellationToken cancellationToken = default)
     {
         var issues = new List<ValidationIssue>();
@@ -292,7 +289,6 @@ public sealed class ArchiveJobPlanner
             totalBytes,
             totalFiles,
             createdAt,
-            verifyAfterCreate,
             sourceSpecs);
 
         return new ArchivePlanResult<ArchiveCreateSpec>(spec, issues, freeBytes);
