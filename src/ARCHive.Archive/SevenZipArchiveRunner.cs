@@ -127,7 +127,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                         completedFiles,
                         stopwatch.Elapsed,
                         createResult.ExitCode,
-                        "7-Zip could not add one group of selected items to the archive.",
+                        "7-Zip could not add one group of selected items to the archive. The incomplete archive was removed.",
                         output.ToString());
                 }
 
@@ -200,7 +200,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                         0,
                         stopwatch.Elapsed,
                         testResult.ExitCode,
-                        "The archive was created but failed verification.",
+                        "The archive was created but failed verification. The incomplete archive was removed.",
                         output.ToString());
                 }
             }
@@ -254,7 +254,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                 0,
                 stopwatch.Elapsed,
                 null,
-                $"Archive creation failed: {ex.Message}",
+                $"Archive creation failed: {ex.Message}. The incomplete archive was removed.",
                 output.ToString());
         }
     }
@@ -343,7 +343,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                     0,
                     stopwatch.Elapsed,
                     null,
-                    "The archive reports an invalid total extracted size.",
+                    "The archive could not be read. No files were extracted.",
                     output.ToString());
             }
 
@@ -443,7 +443,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                     0,
                     stopwatch.Elapsed,
                     extractResult.ExitCode,
-                    "7-Zip could not extract the archive.",
+                    "7-Zip could not extract the archive. Any files written before the failure were preserved at the destination.",
                     output.ToString());
             }
 
@@ -471,7 +471,7 @@ public sealed partial class SevenZipArchiveRunner(string? executablePath = null)
                 0,
                 stopwatch.Elapsed,
                 null,
-                $"Extraction failed: {ex.Message}",
+                $"Extraction failed: {ex.Message}. Any files written before the failure were preserved at the destination.",
                 output.ToString());
         }
     }

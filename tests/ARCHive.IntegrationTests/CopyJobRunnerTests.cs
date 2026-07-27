@@ -365,6 +365,111 @@ public sealed class CopyJobRunnerTests
         }
     }
 
+    [TestMethod]
+    public async Task RunAsync_CopiesManySmallFilesAndPreservesAllContent()
+    {
+        using var fixture = new CopyFixture();
+        var source = fixture.CreateDirectory("many-small-source");
+        var expected = new Dictionary<string, string>(
+            StringComparer.OrdinalIgnoreCase);
+        for (var index = 0; index < 100; index++)
+        {
+            var relative = Path.Combine("batch", $"file-{index:000}.txt");
+            var content = $"line {index}";
+            fixture.CreateFile(Path.Combine("many-small-source", relative), content);
+            expected[relative] = content;
+        }
+
+        var destination = fixture.CreateDirectory("many-small-destination");
+        var preflight = await new JobPlanner().PlanCopyAsync(
+            source,
+            destination,
+            DateTimeOffset.Now);
+
+        Assert.IsNotNull(preflight.Job);
+        Assert.AreEqual(100, preflight.Job.TotalFiles);
+        var result = await new CopyJobRunner().RunAsync(
+            preflight.Job,
+            progress: null);
+
+        Assert.AreEqual(JobStatus.Completed, result.Status, result.EngineDetails);
+        Assert.AreEqual(100, result.FilesProcessed);
+        foreach (var item in expected)
+        {
+            var actual = await File.ReadAllTextAsync(
+                Path.Combine(result.OutputPath, item.Key));
+            Assert.AreEqual(item.Value, actual, item.Key);
+        }
+    }
+
+    [TestMethod]
+    public async Task RunAsync_CancelAfterPartialProgressPreservesCancelledSummary()
+    {
+        using var fixture = new CopyFixture();
+        var source = fixture.CreateDirectory("cancel-partial-source");
+        for (var index = 0; index < 20; index++)
+        {
+            fixture.CreateFile(
+                Path.Combine(
+                    "cancel-partial-source",
+                    $"file-{index:00}.txt"),
+                new string('x', 64 * 1024));
+        }
+
+        var destination = fixture.CreateDirectory("cancel-partial-destination");
+        var preflight = await new JobPlanner().PlanCopyAsync(
+            source,
+            destination,
+            DateTimeOffset.Now);
+
+        Assert.IsNotNull(preflight.Job);
+        using var cancellation = new CancellationTokenSource();
+        var cancelled = false;
+        var progress = new InlineProgress<JobProgress>(update =>
+        {
+            if (!cancelled && update.FilesCompleted >= 3)
+            {
+                cancelled = true;
+                cancellation.Cancel();
+            }
+        });
+
+        var result = await new CopyJobRunner().RunAsync(
+            preflight.Job,
+            progress,
+            cancellation.Token);
+
+        Assert.AreEqual(JobStatus.Cancelled, result.Status);
+        StringAssert.Contains(result.Summary, "Copy cancelled");
+        Assert.IsTrue(
+            File.Exists(result.OutputPath) || !Directory.Exists(result.OutputPath),
+            "Output path state should be consistent with cancellation cleanup.");
+    }
+
+    [TestMethod]
+    public async Task RunAsync_CancelSummaryDistinguishesFromFailure()
+    {
+        using var fixture = new CopyFixture();
+        var source = fixture.CreateFile("single-source.txt", "content");
+        var destination = fixture.CreateDirectory("dest");
+        var preflight = await new JobPlanner().PlanCopyAsync(
+            source,
+            destination,
+            DateTimeOffset.Now);
+
+        Assert.IsNotNull(preflight.Job);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var cancelResult = await new CopyJobRunner().RunAsync(
+            preflight.Job,
+            progress: null,
+            cancellation.Token);
+
+        Assert.AreEqual(JobStatus.Cancelled, cancelResult.Status);
+        StringAssert.Contains(cancelResult.Summary, "cancelled");
+        Assert.IsFalse(cancelResult.Summary.Contains("failed", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static string CreatePauseFixture(CopyFixture fixture)
     {
         var source = fixture.CreateDirectory("pause-source");

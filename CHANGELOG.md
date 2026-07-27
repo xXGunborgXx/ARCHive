@@ -2,6 +2,34 @@
 
 All notable changes to ARCHive are documented in this file.
 
+## [1.1.0-beta2] - 2026-07-27
+
+### Bug Fixes
+
+- **DriveClassifier P/Invoke corrected** — `STORAGE_PROPERTY_QUERY` no longer
+  includes a marshaled `byte[]` field that shifted subsequent struct fields.
+  `RemovableMedia` changed from `short` to `byte` to match the Win32 `BOOLEAN`
+  type, fixing offset errors in `STORAGE_DEVICE_DESCRIPTOR` reads. Bus-type
+  constants corrected to match Windows `STORAGE_BUS_TYPE` values (SCSI=0x01,
+  USB=0x07, SATA=0x0B, NVMe=0x0D).
+- **Double-buffer consistency** — single-file copy loop now uses
+  `await readTask` instead of `.Result` for consistency with async patterns.
+
+### User Experience
+
+- **Cancel-vs-fail summary text hardened** — all runner failure paths now
+  explicitly state whether incomplete output was removed or preserved at the
+  destination. Cancel messages clearly state the source was not modified.
+  Extraction failures note that any files written before failure are preserved.
+- **Version bump** — release upgraded from `1.0.0-beta1` to `1.1.0-beta2`.
+
+### Testing
+
+- New integration tests: many small files, cancel-after-partial-progress,
+  cancel-vs-fail summary distinction, archive verify on/off.
+- New unit tests: `DriveClassifier` bus-type mapping via reflection.
+- Test counts updated to 41 unit + 27 integration (68 total).
+
 ## [Unreleased]
 
 ### Performance

@@ -1,5 +1,5 @@
 #define MyAppName "ARCHive"
-#define MyAppVersion "1.0.0-beta1"
+#define MyAppVersion "1.1.0-beta2"
 #define MyAppPublisher "ARCHive Project"
 #define MyAppExeName "ARCHive.exe"
 
@@ -14,7 +14,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=output
-OutputBaseFilename=ARCHive-Beta-1.0.0-beta1-7day-Setup
+OutputBaseFilename=ARCHive-Beta-1.1.0-beta2-7day-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern dark includetitlebar hidebevels

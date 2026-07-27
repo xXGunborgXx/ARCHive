@@ -5,7 +5,7 @@ Thank you for testing ARCHive. This package contains a non-production Windows
 
 ## Package Contents
 
-1. `ARCHive-Beta-1.0.0-beta1-7day-Setup.exe` - application installer
+1. `ARCHive-Beta-1.1.0-beta2-7day-Setup.exe` - application installer
 2. `README.md` - this quick-start guide
 3. `INSTRUCTIONS_AND_DISCLOSURES.txt` - plain-text instructions and full local
    record disclosure

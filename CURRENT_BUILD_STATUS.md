@@ -2,28 +2,28 @@
 
 Date: 2026-07-27
 
-Beta: 1.0.0-beta1
+Beta: 1.1.0-beta2
 
 Trial period: Seven days from first launch
 
 Target: Windows 11 x64
 
-## Final Beta Package
+## Beta Package
 
 Package directory:
-`artifacts\ARCHive-1.0.0-beta1-7day-package`
+`artifacts\ARCHive-1.1.0-beta2-7day-package`
 
 The distribution directory contains exactly four files:
 
-1. `ARCHive-Beta-1.0.0-beta1-7day-Setup.exe`
+1. `ARCHive-Beta-1.1.0-beta2-7day-Setup.exe`
 2. `README.md`
 3. `INSTRUCTIONS_AND_DISCLOSURES.txt`
 4. `ARCHive_Beta_Test_Questionnaire.docx`
 
-Installer size: 47,522,983 bytes (45.32 MiB)
+Installer size: 47,515,223 bytes (45.31 MiB)
 
 Installer SHA-256:
-`68E4D1231D55A11CAF1D3671519974E0BBC90C4AA35C039468AC3D03B003AB7F`
+`5BB891DC15D568BEBCE8790408A9E6E9CE81AB3C631EB1E49BDF7B091C8218A8`
 
 ## Seven-Day Trial Behavior
 
@@ -54,9 +54,9 @@ Installer SHA-256:
 ## Automated Verification
 
 - Release build: passed with 0 warnings and 0 errors.
-- Unit tests: 32 passed.
-- Integration tests: 20 passed.
-- Total: 52 passed, 0 failed.
+- Unit tests: 41 passed.
+- Integration tests: 27 passed.
+- Total: 68 passed, 0 failed.
 - Self-contained Windows x64 publish: passed.
 - Inno Setup 6.7.3 compilation: passed.
 

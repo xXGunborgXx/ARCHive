@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ARCHive.Core\ARCHive.Core.csproj" />
     <ProjectReference Include="..\..\src\ARCHive.Archive\ARCHive.Archive.csproj" />
+    <ProjectReference Include="..\..\src\ARCHive.Copy\ARCHive.Copy.csproj" />
   </ItemGroup>
 
 </Project>

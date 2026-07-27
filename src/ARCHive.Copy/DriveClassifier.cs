@@ -58,7 +58,6 @@ public static class DriveClassifier
     {
         public uint PropertyId;
         public uint QueryType;
-        public byte[] AdditionalParameters;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -75,7 +74,7 @@ public static class DriveClassifier
         public uint Size;
         public byte DeviceType;
         public byte DeviceTypeModifier;
-        public short RemovableMedia;
+        public byte RemovableMedia;
         public byte CommandQueueing;
         public uint VendorIdOffset;
         public uint ProductIdOffset;
@@ -118,8 +117,7 @@ public static class DriveClassifier
                 var query = new STORAGE_PROPERTY_QUERY
                 {
                     PropertyId = 0,
-                    QueryType = PropertyStandardQuery,
-                    AdditionalParameters = []
+                    QueryType = PropertyStandardQuery
                 };
 
                 var querySize = (uint)Marshal.SizeOf<STORAGE_PROPERTY_QUERY>();
@@ -189,10 +187,10 @@ public static class DriveClassifier
 
     private static DriveBusType MapBusType(uint busType) => busType switch
     {
-        0x0007 => DriveBusType.USB,
-        0x000B => DriveBusType.SCSI,
-        0x0012 => DriveBusType.SATA,
-        0x0013 => DriveBusType.NVMe,
+        0x01 => DriveBusType.SCSI,
+        0x07 => DriveBusType.USB,
+        0x0B => DriveBusType.SATA,
+        0x0D => DriveBusType.NVMe,
         _ => DriveBusType.Unknown
     };
 

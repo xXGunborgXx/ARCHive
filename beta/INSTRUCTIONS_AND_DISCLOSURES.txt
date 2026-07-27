@@ -9,7 +9,7 @@ creating 7z or ZIP archives, and extracting supported archives.
 INSTALLATION
 
 1. Keep another verified copy of every important test file.
-2. Run ARCHive-Beta-1.0.0-beta1-7day-Setup.exe as a normal Windows user.
+2. Run ARCHive-Beta-1.1.0-beta2-7day-Setup.exe as a normal Windows user.
 3. Read the disclosure shown by the installer.
 4. Complete installation and launch ARCHive.
 5. Note the expiry date shown on first launch.

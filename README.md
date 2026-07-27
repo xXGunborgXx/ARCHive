@@ -7,13 +7,13 @@ ARCHive is a compact Windows 11 desktop utility for ordinary users who need to
 copy files and folders, create 7z or ZIP archives, or extract archives without
 learning command-line tools.
 
-The current public build is `1.0.0-beta1`, a seven-day testing release.
+The current public build is `1.1.0-beta2`, a seven-day testing release.
 
 ## Download the Beta
 
 Download the installer, instructions, disclosures, and editable questionnaire
 from the
-[v1.0.0-beta1 release](https://github.com/xXGunborgXx/ARCHive/releases/tag/v1.0.0-beta1).
+[v1.1.0-beta2 release](https://github.com/xXGunborgXx/ARCHive/releases/tag/v1.1.0-beta2).
 
 The installer is not code-signed. Windows may display an **Unknown publisher**
 or SmartScreen warning. Do not bypass organizational security policy.
@@ -76,7 +76,7 @@ Outputs are written to:
 
 ```text
 artifacts\publish\win-x64\
-installer\output\ARCHive-Beta-1.0.0-beta1-7day-Setup.exe
+installer\output\ARCHive-Beta-1.1.0-beta2-7day-Setup.exe
 ```
 
 The required 7-Zip runtime components and their license files are retained in
@@ -88,7 +88,7 @@ The required 7-Zip runtime components and their license files are retained in
 dotnet test .\ARCHive.sln --configuration Release
 ```
 
-The beta baseline contains 32 unit tests and 20 integration tests.
+The beta baseline contains 41 unit tests and 27 integration tests.
 
 For real throughput testing, use the physically written test-data scripts:
 

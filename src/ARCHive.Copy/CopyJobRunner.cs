@@ -97,7 +97,7 @@ public sealed class CopyJobRunner : ICopyJobRunner
 
                     await Task.WhenAll(readTask, writeTask);
 
-                    var bytesRead = readTask.Result;
+                    var bytesRead = await readTask;
                     if (bytesRead == 0)
                     {
                         break;
@@ -177,7 +177,7 @@ public sealed class CopyJobRunner : ICopyJobRunner
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            TryDeleteOwnedPartialFile(temporaryPath);
+            var cleanup = TryDeleteOwnedPartialFile(temporaryPath);
             stopwatch.Stop();
             return new JobResult(
                 job.JobId,
@@ -187,7 +187,7 @@ public sealed class CopyJobRunner : ICopyJobRunner
                 0,
                 stopwatch.Elapsed,
                 null,
-                $"Copy failed: {ex.Message}",
+                $"Copy failed: {ex.Message}. {cleanup.Details}",
                 ex.ToString());
         }
         finally
