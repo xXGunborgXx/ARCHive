@@ -6,6 +6,8 @@ namespace ARCHive.App;
 
 public partial class App : Application
 {
+    private SingleInstanceService? _singleInstance;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -58,6 +60,13 @@ public partial class App : Application
             }
         }
 
+        _singleInstance = new SingleInstanceService();
+        if (!_singleInstance.TryAcquire(e.Args))
+        {
+            Shutdown();
+            return;
+        }
+
         var contextMenu = ContextMenuArgs.Parse(e.Args);
 
         if (contextMenu.HasError)
@@ -93,5 +102,50 @@ public partial class App : Application
         MainWindow = mainWindow;
         mainWindow.Show();
         ShutdownMode = ShutdownMode.OnMainWindowClose;
+
+        _singleInstance.ArgumentsReceived += OnSecondInstanceArgs;
+        _singleInstance.StartListening();
     }
+
+    private void OnSecondInstanceArgs(string[] args)
+    {
+        if (MainWindow is not { } window)
+        {
+            return;
+        }
+
+        var parsed = ContextMenuArgs.Parse(args);
+        if (parsed.HasError || parsed.IsEmpty)
+        {
+            return;
+        }
+
+        Dispatcher.Invoke(() =>
+        {
+            if (window is MainWindow mainWindow)
+            {
+                mainWindow.InjectFromContextMenu(
+                    parsed.Action.ToJobAction(),
+                    parsed.SourcePaths);
+            }
+        });
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _singleInstance?.Dispose();
+        base.OnExit(e);
+    }
+}
+
+internal static class ContextMenuActionExtensions
+{
+    public static JobAction ToJobAction(this ContextMenuAction action) =>
+        action switch
+        {
+            ContextMenuAction.Copy => JobAction.Copy,
+            ContextMenuAction.CreateArchive => JobAction.CreateArchive,
+            ContextMenuAction.ExtractArchive => JobAction.ExtractArchive,
+            _ => JobAction.Copy
+        };
 }

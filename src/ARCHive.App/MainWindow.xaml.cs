@@ -83,6 +83,40 @@ public partial class MainWindow : Window
         }
     }
 
+    public void InjectFromContextMenu(
+        JobAction action,
+        IReadOnlyList<string> sourcePaths)
+    {
+        if (_jobRunning)
+        {
+            return;
+        }
+
+        Activate();
+        Topmost = true;
+        Topmost = false;
+        Focus();
+
+        if (action == JobAction.ExtractArchive)
+        {
+            SelectAction(JobAction.ExtractArchive);
+            if (sourcePaths.Count > 0)
+            {
+                _extractSourcePath = sourcePaths[0];
+                SetSourceText(sourcePaths[0], isReadOnly: true);
+                ClearSourcesButton.Visibility = Visibility.Visible;
+            }
+        }
+        else
+        {
+            var targetAction = action == JobAction.CreateArchive
+                ? JobAction.CreateArchive
+                : JobAction.Copy;
+            SelectAction(targetAction);
+            AddSelectedSources(sourcePaths);
+        }
+    }
+
     private void OnTitleBarMouseLeftButtonDown(
         object sender,
         MouseButtonEventArgs e)
