@@ -39,10 +39,48 @@ public partial class MainWindow : Window
     private bool _updatingSourceUi;
     private string _extractSourcePath = string.Empty;
 
+    private readonly JobAction? _initialAction;
+    private readonly IReadOnlyList<string>? _initialSourcePaths;
+
     public MainWindow()
     {
         _copyRunner = new CopyJobRunner(_copyPauseController);
         InitializeComponent();
+    }
+
+    public MainWindow(
+        JobAction initialAction,
+        IReadOnlyList<string> initialSourcePaths)
+    {
+        _initialAction = initialAction;
+        _initialSourcePaths = initialSourcePaths;
+        _copyRunner = new CopyJobRunner(_copyPauseController);
+        InitializeComponent();
+        Loaded += OnContextMenuLoaded;
+    }
+
+    private void OnContextMenuLoaded(object sender, RoutedEventArgs e)
+    {
+        Loaded -= OnContextMenuLoaded;
+
+        if (_initialAction is not { } action ||
+            _initialSourcePaths is not { Count: > 0 } paths)
+        {
+            return;
+        }
+
+        SelectAction(action);
+
+        if (action == JobAction.ExtractArchive)
+        {
+            _extractSourcePath = paths[0];
+            SetSourceText(paths[0], isReadOnly: true);
+            ClearSourcesButton.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            AddSelectedSources(paths);
+        }
     }
 
     private void OnTitleBarMouseLeftButtonDown(

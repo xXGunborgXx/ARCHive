@@ -2,6 +2,40 @@
 
 All notable changes to ARCHive are documented in this file.
 
+## [1.2.0-beta3] - 2026-07-27
+
+### Features
+
+- **Windows Explorer context menu integration** — three context menu entries
+  are now available when right-clicking files or folders in Windows Explorer:
+  - **Copy with ARCHive** — appears for any file or folder selection; opens
+    ARCHive with the Copy action pre-selected and files loaded.
+  - **Archive with ARCHive** — appears for any file or folder selection; opens
+    ARCHive with the Create Archive action pre-selected and files loaded.
+  - **Extract with ARCHive** — appears only for `.7z` and `.zip` files; opens
+    ARCHive with the Extract Archive action ready for a single archive.
+
+### User Experience
+
+- **Context menu icons** — each context menu entry displays the ARCHive icon
+  alongside the text label for visual identification.
+- **Command-line argument protocol** — ARCHive now accepts `--copy`, `--archive`,
+  and `--extract` arguments with source file paths, enabling the context menu
+  integration. A clear error message is shown if the Windows command-line
+  length limit is exceeded.
+- **Version bump** — release upgraded from `1.1.0-beta2` to `1.2.0-beta3`.
+
+### Installer
+
+- **Context menu registry entries** — the installer now adds context menu
+  entries under `HKEY_CURRENT_USER` for files, folders, and archive file
+  associations. Entries are automatically removed on uninstall.
+
+### Documentation
+
+- **Context menu disclosure** — installation disclosure and user instructions
+  updated to describe the new context menu entries and their behavior.
+
 ## [1.1.0-beta2] - 2026-07-27
 
 ### Bug Fixes

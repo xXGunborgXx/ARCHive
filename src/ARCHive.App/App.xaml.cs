@@ -58,7 +58,38 @@ public partial class App : Application
             }
         }
 
-        var mainWindow = new MainWindow();
+        var contextMenu = ContextMenuArgs.Parse(e.Args);
+
+        if (contextMenu.HasError)
+        {
+            new BetaNoticeWindow(
+                "Context menu error",
+                contextMenu.ErrorMessage +
+                Environment.NewLine + Environment.NewLine +
+                "You can also open ARCHive directly and add files from " +
+                "within the application.",
+                "Exit ARCHive").ShowDialog();
+            Shutdown();
+            return;
+        }
+
+        MainWindow mainWindow;
+        if (!contextMenu.IsEmpty)
+        {
+            var action = contextMenu.Action switch
+            {
+                ContextMenuAction.Copy => JobAction.Copy,
+                ContextMenuAction.CreateArchive => JobAction.CreateArchive,
+                ContextMenuAction.ExtractArchive => JobAction.ExtractArchive,
+                _ => JobAction.Copy
+            };
+            mainWindow = new MainWindow(action, contextMenu.SourcePaths);
+        }
+        else
+        {
+            mainWindow = new MainWindow();
+        }
+
         MainWindow = mainWindow;
         mainWindow.Show();
         ShutdownMode = ShutdownMode.OnMainWindowClose;

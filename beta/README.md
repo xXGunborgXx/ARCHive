@@ -5,7 +5,7 @@ Thank you for testing ARCHive. This package contains a non-production Windows
 
 ## Package Contents
 
-1. `ARCHive-Beta-1.1.0-beta2-7day-Setup.exe` - application installer
+1. `ARCHive-Beta-1.2.0-beta3-7day-Setup.exe` - application installer
 2. `README.md` - this quick-start guide
 3. `INSTRUCTIONS_AND_DISCLOSURES.txt` - plain-text instructions and full local
    record disclosure
@@ -46,6 +46,8 @@ administrator if installation is blocked.
 - Confirm progress, percentage, speed, and waiting-for-storage messages remain
   understandable.
 - Check the fixed-size interface and installer at your normal display scaling.
+- Right-click context menu: Copy with ARCHive, Archive with ARCHive,
+  Extract with ARCHive for .7z and .zip files.
 
 Use disposable test data whenever possible. This beta must not be the only
 copy of important files.

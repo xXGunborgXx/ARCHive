@@ -56,3 +56,16 @@ GunborgServers@gmail.com
 
 Continuing installation means you acknowledge this seven-day beta behavior
 and the local records described above.
+
+CONTEXT MENU INTEGRATION
+
+This installer adds Explorer context menu entries for the current Windows user.
+The entries appear when you right-click files or folders:
+
+- "Copy with ARCHive" — available for any file or folder.
+- "Archive with ARCHive" — available for any file or folder.
+- "Extract with ARCHive" — available only for .7z and .zip files.
+
+Selecting an entry opens ARCHive with the chosen action and the selected
+files already loaded. These entries are stored in the current-user Windows
+registry and are automatically removed when ARCHive is uninstalled.

@@ -2,7 +2,7 @@
 
 Status: Seven-day beta instructions
 
-Current beta: 1.1.0-beta2
+Current beta: 1.2.0-beta3
 
 ## Seven-Day Beta Period
 
@@ -183,3 +183,27 @@ Uninstalling the beta does not automatically remove existing records.
 The installer shows this disclosure before installation. The public release
 must receive a separate privacy, logging-control, retention, and Terms of Use
 review.
+
+## Context Menu Integration
+
+When ARCHive is installed, three entries are added to the Windows Explorer
+right-click context menu:
+
+- **Copy with ARCHive** — appears when you right-click any file or folder.
+  Opens ARCHive with the Copy action and the selected files already loaded.
+  Choose a destination and start copying.
+
+- **Archive with ARCHive** — appears when you right-click any file or folder.
+  Opens ARCHive with the Create Archive action and the selected files already
+  loaded. Choose archive type, compression level, and destination.
+
+- **Extract with ARCHive** — appears only when you right-click a `.7z` or
+  `.zip` file. Opens ARCHive with the Extract Archive action and the archive
+  ready to extract. Choose a destination folder.
+
+Each context menu entry shows the ARCHive icon alongside the text label.
+
+The entries are stored in the current-user Windows registry and are
+automatically removed when ARCHive is uninstalled. If the combined file paths
+exceed the Windows command-line length limit, ARCHive shows a clear error
+message advising you to reduce the selection or use the application directly.

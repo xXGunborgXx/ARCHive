@@ -2,7 +2,7 @@
 
 Date: 2026-07-27
 
-Beta: 1.1.0-beta2
+Beta: 1.2.0-beta3
 
 Trial period: Seven days from first launch
 
@@ -11,11 +11,11 @@ Target: Windows 11 x64
 ## Beta Package
 
 Package directory:
-`artifacts\ARCHive-1.1.0-beta2-7day-package`
+`artifacts\ARCHive-1.2.0-beta3-7day-package`
 
 The distribution directory contains exactly four files:
 
-1. `ARCHive-Beta-1.1.0-beta2-7day-Setup.exe`
+1. `ARCHive-Beta-1.2.0-beta3-7day-Setup.exe`
 2. `README.md`
 3. `INSTRUCTIONS_AND_DISCLOSURES.txt`
 4. `ARCHive_Beta_Test_Questionnaire.docx`
@@ -42,12 +42,12 @@ Installer SHA-256:
 
 ## Privacy and Feedback
 
-- The installer discloses the seven-day trial and local diagnostic records
-  before installation.
+- The installer discloses the seven-day trial, local diagnostic records,
+  and context menu integration before installation.
 - Operation records remain local under `%LOCALAPPDATA%\ARCHive\Logs`, are not
   uploaded automatically, and use the existing 30-day retention behavior.
 - The Markdown and plain-text instructions contain the same safety, trial,
-  logging, and submission disclosures.
+  logging, context menu, and submission disclosures.
 - The editable five-page questionnaire asks testers to email completed feedback
   to `GunborgServers@gmail.com`.
 
@@ -69,13 +69,15 @@ Installer SHA-256:
 - Branded dark installer and beta title: passed.
 - Questionnaire: five pages rendered and inspected with no clipping or
   overflow; logo alternative text is present.
+- Explorer context menu entries with ARCHive icon: pending verification.
 
 ## Manual Beta Acceptance
 
 Use a clean, fully updated Windows 11 x64 VM for installation and workflow
 testing. Repeat Copy, Pause/Resume, Cancel, Create Archive, and Extract Archive
-with small, mixed, and large workloads. Complete the questionnaire and return
-it by email.
+with small, mixed, and large workloads. Test the Explorer context menu entries:
+Copy with ARCHive, Archive with ARCHive, and Extract with ARCHive. Complete
+the questionnaire and return it by email.
 
 This installer is not code-signed and Windows may show an Unknown publisher or
 SmartScreen warning. Public promotion still requires beta feedback, final
