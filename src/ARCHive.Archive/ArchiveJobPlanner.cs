@@ -72,6 +72,16 @@ public sealed class ArchiveJobPlanner
         var normalizedSources = new List<string>(sourceInputs.Count);
         foreach (var sourceInput in sourceInputs)
         {
+            if (sourceInput == null || sourceInput.Contains(".."))
+            {
+                issues.Add(Error(
+                    "source.invalid",
+                    "One of the selected source paths is not valid."));
+                return new ArchivePlanResult<ArchiveCreateSpec>(
+                    null,
+                    issues,
+                    null);
+            }
             try
             {
                 normalizedSources.Add(PathSafety.Normalize(sourceInput));

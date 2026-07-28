@@ -61,6 +61,10 @@ public sealed class JobPlanner
         var normalizedSources = new List<string>(sourceInputs.Count);
         foreach (var sourceInput in sourceInputs)
         {
+            if (sourceInput == null || sourceInput.Contains(".."))
+            {
+                throw new ArgumentException("Invalid file path");
+            }
             try
             {
                 normalizedSources.Add(PathSafety.Normalize(sourceInput));
