@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.Diagnostics;
 using ARCHive.Core;
@@ -295,6 +296,10 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
 
             if (!source.IsDirectory)
             {
+                if (source.SourcePath == null || source.SourcePath.Contains(".."))
+                {
+                    throw new ArgumentException("Invalid file path");
+                }
                 var info = new FileInfo(source.SourcePath);
                 var entry = FileCopyEntry.From(
                     source.SourcePath,
@@ -311,19 +316,26 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
                 source.SourcePath,
                 rootRelative));
 
+            var sourceBase = Path.GetFullPath(source.SourcePath);
             foreach (var directory in Directory.EnumerateDirectories(
                 source.SourcePath,
                 "*",
                 options))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var directoryFull = Path.GetFullPath(directory);
+                if (!directoryFull.StartsWith(sourceBase + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                    && directoryFull != sourceBase)
+                {
+                    throw new ArgumentException("Invalid file path");
+                }
                 directories.Add(DirectoryCopyEntry.From(
-                    directory,
+                    directoryFull,
                     CombineRelative(
                         rootRelative,
                         Path.GetRelativePath(
                             source.SourcePath,
-                            directory))));
+                            directoryFull))));
             }
 
             foreach (var path in Directory.EnumerateFiles(
@@ -332,11 +344,17 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
                 options))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var pathFull = Path.GetFullPath(path);
+                if (!pathFull.StartsWith(sourceBase + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                    && pathFull != sourceBase)
+                {
+                    throw new ArgumentException("Invalid file path");
+                }
                 var entry = FileCopyEntry.From(
-                    path,
+                    pathFull,
                     CombineRelative(
                         rootRelative,
-                        Path.GetRelativePath(source.SourcePath, path)));
+                        Path.GetRelativePath(source.SourcePath, pathFull)));
                 files.Add(entry);
                 totalBytes = checked(totalBytes + entry.Length);
             }
@@ -354,12 +372,19 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
         JobSpec job,
         IReadOnlyList<DirectoryCopyEntry> directories)
     {
+        var outputBase = Path.GetFullPath(job.OutputPath);
         foreach (var directory in directories.OrderBy(item => item.Depth))
         {
             var destination = string.IsNullOrEmpty(directory.RelativePath)
                 ? job.OutputPath
                 : Path.Combine(job.OutputPath, directory.RelativePath);
-            Directory.CreateDirectory(destination);
+            var destinationFull = Path.GetFullPath(destination);
+            if (!destinationFull.StartsWith(outputBase + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                && destinationFull != outputBase)
+            {
+                throw new ArgumentException("Invalid file path");
+            }
+            Directory.CreateDirectory(destinationFull);
         }
     }
 
@@ -412,9 +437,20 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
         CancellationToken cancellationToken)
     {
         entry.ValidateSource();
+        if (entry.SourcePath == null || entry.SourcePath.Contains(".."))
+        {
+            throw new ArgumentException("Invalid file path");
+        }
+        var outputBase = Path.GetFullPath(job.OutputPath);
         var destination = Path.Combine(job.OutputPath, entry.RelativePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-        var temporary = $"{destination}.{job.JobId:N}.partial";
+        var destinationFull = Path.GetFullPath(destination);
+        if (!destinationFull.StartsWith(outputBase + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            && destinationFull != outputBase)
+        {
+            throw new ArgumentException("Invalid file path");
+        }
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationFull)!);
+        var temporary = $"{destinationFull}.{job.JobId:N}.partial";
 
         try
         {
@@ -475,7 +511,7 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
             File.SetLastAccessTimeUtc(temporary, entry.LastAccessTimeUtc);
             File.SetLastWriteTimeUtc(temporary, entry.LastWriteTimeUtc);
             File.SetAttributes(temporary, entry.Attributes);
-            File.Move(temporary, destination);
+            File.Move(temporary, destinationFull);
             return new FileCopyOutcome(
                 entry.RelativePath,
                 entry.SourcePath,
@@ -512,15 +548,22 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
         JobSpec job,
         IReadOnlyList<DirectoryCopyEntry> directories)
     {
+        var outputBase = Path.GetFullPath(job.OutputPath);
         foreach (var directory in directories.OrderByDescending(item => item.Depth))
         {
             var destination = string.IsNullOrEmpty(directory.RelativePath)
                 ? job.OutputPath
                 : Path.Combine(job.OutputPath, directory.RelativePath);
-            Directory.SetCreationTimeUtc(destination, directory.CreationTimeUtc);
-            Directory.SetLastAccessTimeUtc(destination, directory.LastAccessTimeUtc);
-            Directory.SetLastWriteTimeUtc(destination, directory.LastWriteTimeUtc);
-            File.SetAttributes(destination, directory.Attributes);
+            var destinationFull = Path.GetFullPath(destination);
+            if (!destinationFull.StartsWith(outputBase + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                && destinationFull != outputBase)
+            {
+                throw new ArgumentException("Invalid file path");
+            }
+            Directory.SetCreationTimeUtc(destinationFull, directory.CreationTimeUtc);
+            Directory.SetLastAccessTimeUtc(destinationFull, directory.LastAccessTimeUtc);
+            Directory.SetLastWriteTimeUtc(destinationFull, directory.LastWriteTimeUtc);
+            File.SetAttributes(destinationFull, directory.Attributes);
         }
     }
 
@@ -547,9 +590,16 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
             AttributesToSkip = FileAttributes.ReparsePoint
         };
 
+        var rootFull = Path.GetFullPath(root);
         foreach (var path in Directory.EnumerateFiles(root, "*", options))
         {
-            bytes = checked(bytes + new FileInfo(path).Length);
+            var pathFull = Path.GetFullPath(path);
+            if (!pathFull.StartsWith(rootFull + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                && pathFull != rootFull)
+            {
+                throw new ArgumentException("Invalid file path");
+            }
+            bytes = checked(bytes + new FileInfo(pathFull).Length);
             files++;
         }
 
@@ -641,6 +691,10 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
     {
         try
         {
+            if (path == null || path.Contains(".."))
+            {
+                throw new ArgumentException("Invalid file path");
+            }
             if (File.Exists(path))
             {
                 File.SetAttributes(path, FileAttributes.Normal);
@@ -690,6 +744,10 @@ internal sealed class PausableFolderCopyRunner(CopyPauseController pauseControll
             string sourcePath,
             string relativePath)
         {
+            if (sourcePath == null || sourcePath.Contains(".."))
+            {
+                throw new ArgumentException("Invalid file path");
+            }
             var info = new FileInfo(sourcePath);
             return new FileCopyEntry(
                 sourcePath,
